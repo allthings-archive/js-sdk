@@ -6,7 +6,7 @@ let clientIdPromise = null;
 export default interceptor({
     init: function (config) {
         if (!config.clientId.then) {
-            clientIdPromise = new Promise.resolve(config.clientId)
+            clientIdPromise = Promise.resolve(config.clientId)
         } else {
             clientIdPromise = config.clientId
         }
