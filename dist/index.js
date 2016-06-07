@@ -10,6 +10,7 @@
     defaultRequest = 'default' in defaultRequest ? defaultRequest['default'] : defaultRequest;
     pathPrefix = 'default' in pathPrefix ? pathPrefix['default'] : pathPrefix;
     interceptor = 'default' in interceptor ? interceptor['default'] : interceptor;
+    when = 'default' in when ? when['default'] : when;
 
     // the auth client
     let auth$1 = null;
@@ -18,7 +19,7 @@
     // the token
     let token = function () {
         if (!currentToken) {
-            currentToken = when.when.promise((res, rej) => {
+            currentToken = when.promise((res, rej) => {
                 auth$1({ path: 'access-token', client_id: true }).then(response => {
                     if (response.status.code === 200) {
                         res(response.entity.access_token);
@@ -118,7 +119,7 @@
     var clientIdInterceptor = interceptor({
         init: function (config) {
             if (!config.clientId.then) {
-                clientIdPromise = when.when.resolve(config.clientId);
+                clientIdPromise = when.resolve(config.clientId);
             } else {
                 clientIdPromise = config.clientId;
             }

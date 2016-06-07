@@ -1,5 +1,5 @@
 import interceptor from 'rest/interceptor';
-import { when } from 'when';
+import when from 'when';
 
 // the auth client
 let auth  = null;
