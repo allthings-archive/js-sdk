@@ -118,7 +118,7 @@
     var clientIdInterceptor = interceptor({
         init: function (config) {
             if (!config.clientId.then) {
-                clientIdPromise = new when_es6Shim_Promise.Promise.resolve(config.clientId);
+                clientIdPromise = when_es6Shim_Promise.Promise.resolve(config.clientId);
             } else {
                 clientIdPromise = config.clientId;
             }
