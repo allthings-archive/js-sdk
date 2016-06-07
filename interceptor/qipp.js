@@ -1,5 +1,5 @@
 import interceptor from 'rest/interceptor';
-import { Promise } from 'when/es6-shim/Promise';
+import { when } from 'when';
 
 // the auth client
 let auth  = null;
@@ -8,7 +8,7 @@ let currentToken = null;
 // the token
 let token = function() {
     if (!currentToken) {
-        currentToken = new Promise((res, rej) => {
+        currentToken = when.promise((res, rej) => {
             auth({ path: 'access-token', client_id: true }).then(response => {
                 if  (response.status.code === 200) {
                     res(response.entity.access_token)

@@ -1,8 +1,8 @@
 (function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('rest'), require('rest/interceptor/mime'), require('rest/interceptor/errorCode'), require('rest/interceptor/defaultRequest'), require('rest/interceptor/pathPrefix'), require('rest/interceptor'), require('when/es6-shim/Promise'), require('cookie')) :
-    typeof define === 'function' && define.amd ? define(['rest', 'rest/interceptor/mime', 'rest/interceptor/errorCode', 'rest/interceptor/defaultRequest', 'rest/interceptor/pathPrefix', 'rest/interceptor', 'when/es6-shim/Promise', 'cookie'], factory) :
-    (global.sdk = factory(global.rest,global.mime,global.errorCode,global.defaultRequest,global.pathPrefix,global.interceptor,global.when_es6Shim_Promise,global.cookie));
-}(this, function (rest,mime,errorCode,defaultRequest,pathPrefix,interceptor,when_es6Shim_Promise,cookie) { 'use strict';
+    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('rest'), require('rest/interceptor/mime'), require('rest/interceptor/errorCode'), require('rest/interceptor/defaultRequest'), require('rest/interceptor/pathPrefix'), require('rest/interceptor'), require('when'), require('cookie')) :
+    typeof define === 'function' && define.amd ? define(['rest', 'rest/interceptor/mime', 'rest/interceptor/errorCode', 'rest/interceptor/defaultRequest', 'rest/interceptor/pathPrefix', 'rest/interceptor', 'when', 'cookie'], factory) :
+    (global.sdk = factory(global.rest,global.mime,global.errorCode,global.defaultRequest,global.pathPrefix,global.interceptor,global.when,global.cookie));
+}(this, function (rest,mime,errorCode,defaultRequest,pathPrefix,interceptor,when,cookie) { 'use strict';
 
     rest = 'default' in rest ? rest['default'] : rest;
     mime = 'default' in mime ? mime['default'] : mime;
@@ -18,7 +18,7 @@
     // the token
     let token = function () {
         if (!currentToken) {
-            currentToken = new when_es6Shim_Promise.Promise((res, rej) => {
+            currentToken = when.when.promise((res, rej) => {
                 auth$1({ path: 'access-token', client_id: true }).then(response => {
                     if (response.status.code === 200) {
                         res(response.entity.access_token);
@@ -118,7 +118,7 @@
     var clientIdInterceptor = interceptor({
         init: function (config) {
             if (!config.clientId.then) {
-                clientIdPromise = when_es6Shim_Promise.Promise.resolve(config.clientId);
+                clientIdPromise = when.when.resolve(config.clientId);
             } else {
                 clientIdPromise = config.clientId;
             }

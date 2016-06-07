@@ -1,12 +1,12 @@
 import interceptor from 'rest/interceptor';
-import { Promise } from 'when/es6-shim/Promise';
+import { when } from 'when';
 
 let clientIdPromise = null;
 
 export default interceptor({
     init: function (config) {
         if (!config.clientId.then) {
-            clientIdPromise = Promise.resolve(config.clientId)
+            clientIdPromise = when.resolve(config.clientId)
         } else {
             clientIdPromise = config.clientId
         }
