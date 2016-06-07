@@ -20,7 +20,7 @@ export default {
   auth: authClient,
   api: apiClient
 }
-```js
+```
 
 ## based on 
 
