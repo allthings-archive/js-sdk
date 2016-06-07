@@ -1,8 +1,8 @@
 (function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('rest'), require('rest/interceptor/mime'), require('rest/interceptor/errorCode'), require('rest/interceptor/defaultRequest'), require('rest/interceptor/pathPrefix'), require('rest/interceptor'), require('cookie'), require('when/es6-shim/Promise')) :
-    typeof define === 'function' && define.amd ? define(['rest', 'rest/interceptor/mime', 'rest/interceptor/errorCode', 'rest/interceptor/defaultRequest', 'rest/interceptor/pathPrefix', 'rest/interceptor', 'cookie', 'when/es6-shim/Promise'], factory) :
-    (global.sdk = factory(global.rest,global.mime,global.errorCode,global.defaultRequest,global.pathPrefix,global.interceptor,global.cookie,global.when_es6Shim_Promise));
-}(this, function (rest,mime,errorCode,defaultRequest,pathPrefix,interceptor,cookie,when_es6Shim_Promise) { 'use strict';
+    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('rest'), require('rest/interceptor/mime'), require('rest/interceptor/errorCode'), require('rest/interceptor/defaultRequest'), require('rest/interceptor/pathPrefix'), require('rest/interceptor'), require('when/es6-shim/Promise'), require('cookie')) :
+    typeof define === 'function' && define.amd ? define(['rest', 'rest/interceptor/mime', 'rest/interceptor/errorCode', 'rest/interceptor/defaultRequest', 'rest/interceptor/pathPrefix', 'rest/interceptor', 'when/es6-shim/Promise', 'cookie'], factory) :
+    (global.sdk = factory(global.rest,global.mime,global.errorCode,global.defaultRequest,global.pathPrefix,global.interceptor,global.when_es6Shim_Promise,global.cookie));
+}(this, function (rest,mime,errorCode,defaultRequest,pathPrefix,interceptor,when_es6Shim_Promise,cookie) { 'use strict';
 
     rest = 'default' in rest ? rest['default'] : rest;
     mime = 'default' in mime ? mime['default'] : mime;
@@ -18,7 +18,7 @@
     // the token
     let token = function () {
         if (!currentToken) {
-            currentToken = new Promise((res, rej) => {
+            currentToken = new when_es6Shim_Promise.Promise((res, rej) => {
                 auth$1({ path: 'access-token', client_id: true }).then(response => {
                     if (response.status.code === 200) {
                         res(response.entity.access_token);
@@ -149,8 +149,6 @@
             });
         }
     });
-
-    let { a, b } = qipp;
 
     const auth = ({ path, clientId }) => {
         return rest.wrap(defaultRequest, { mixin: { withCredentials: true } }).wrap(clientIdInterceptor, { clientId }).wrap(csrf, { path: path + 'csrf-token' }).wrap(pathPrefix, { prefix: path }).wrap(mime, { mime: 'application/json' }).wrap(errorCode, { code: 400 });

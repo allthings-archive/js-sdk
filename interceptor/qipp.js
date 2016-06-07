@@ -1,4 +1,5 @@
 import interceptor from 'rest/interceptor';
+import { Promise } from 'when/es6-shim/Promise';
 
 // the auth client
 let auth  = null;

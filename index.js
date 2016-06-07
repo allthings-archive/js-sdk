@@ -10,8 +10,6 @@ import csrf from './interceptor/csrf'
 import error from './interceptor/error'
 import clientIdInterceptor from './interceptor/clientId'
 
-let { a, b} = qipp;
-
 const auth = ({path, clientId}) => {
     return rest.wrap(defaultRequest, { mixin: { withCredentials: true }})
         .wrap(clientIdInterceptor, { clientId })
