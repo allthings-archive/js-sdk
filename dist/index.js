@@ -1,63 +1,164 @@
-'use strict';
+import rest from 'rest';
+import mime from 'rest/interceptor/mime';
+import errorCode from 'rest/interceptor/errorCode';
+import defaultRequest from 'rest/interceptor/defaultRequest';
+import pathPrefix from 'rest/interceptor/pathPrefix';
+import interceptor from 'rest/interceptor';
+import 'cookie';
+import { Promise as Promise$1 } from 'when/es6-shim/Promise';
 
-Object.defineProperty(exports, "__esModule", {
-    value: true
+// the auth client
+let auth$1 = null;
+
+let currentToken = null;
+// the token
+let token = function () {
+    if (!currentToken) {
+        currentToken = new Promise((res, rej) => {
+            auth$1({ path: 'access-token', client_id: true }).then(response => {
+                if (response.status.code === 200) {
+                    res(response.entity.access_token);
+                } else {
+                    rej(response.status.code);
+                }
+            });
+        });
+    }
+
+    return currentToken;
+};
+
+var qipp = interceptor({
+    init: function (config) {
+        auth$1 = config.auth;
+
+        return config;
+    },
+    request: function (request, config, meta) {
+        return token().then(bearerToken => {
+
+            let headers;
+            headers = request.headers || (request.headers = {});
+            headers.authorization = 'Bearer ' + bearerToken;
+
+            return request;
+        });
+    },
+    success: function (response, config, meta) {
+        let { entity } = response;
+        if (typeof entity == 'object' && entity.access_token) {
+            auth$1 = entity;
+        }
+
+        return response;
+    }
 });
 
-var _rest = require('rest');
+function getToken(response) {
+    return response.entity.csrfToken;
+}
 
-var _rest2 = _interopRequireDefault(_rest);
+var csrf = interceptor({
+    init: function (config) {
+        // do studd with the config
+        return config;
+    },
+    request: function (request, config, meta) {
 
-var _mime = require('rest/interceptor/mime');
+        if (request.requiresCsrf) {
+            var client = config.client || request.originator || client.skip();
 
-var _mime2 = _interopRequireDefault(_mime);
+            return client({
+                path: config.path,
+                clientID: true,
+                method: 'GET'
+            }).then(response => {
+                return {
+                    csrfToken: getToken(response)
+                };
+            }).then(response => {
+                var entity = JSON.parse(request.entity) || {};
+                entity.csrfToken = response.csrfToken;
+                request.entity = JSON.stringify(entity);
 
-var _errorCode = require('rest/interceptor/errorCode');
+                return request;
+            });
+        }
 
-var _errorCode2 = _interopRequireDefault(_errorCode);
+        return request;
+    },
+    response: function (response, config, meta) {
+        return response;
+    },
+    success: function (response, config, meta) {
+        return response;
+    },
+    error: function (response, config, meta) {
+        return response;
+    }
+});
 
-var _defaultRequest = require('rest/interceptor/defaultRequest');
+interceptor({
+    error: function (response) {
+        return {
+            error: {
+                message: response.entity ? response.entity : '',
+                status: response.status
+            }
+        };
+    }
+});
 
-var _defaultRequest2 = _interopRequireDefault(_defaultRequest);
+let clientIdPromise = null;
 
-var _pathPrefix = require('rest/interceptor/pathPrefix');
+var clientIdInterceptor = interceptor({
+    init: function (config) {
+        if (!config.clientId.then) {
+            clientIdPromise = new Promise$1.resolve(config.clientId);
+        } else {
+            clientIdPromise = config.clientId;
+        }
 
-var _pathPrefix2 = _interopRequireDefault(_pathPrefix);
+        return config;
+    },
 
-var _qipp = require('./interceptor/qipp');
+    request: function (request, config, meta) {
+        return clientIdPromise.then(clientId => {
+            let params = request.params || {};
 
-var _qipp2 = _interopRequireDefault(_qipp);
+            if (request.clientId) {
+                params.clientId = clientId;
+                request.params = params;
+            }
 
-var _csrf = require('./interceptor/csrf');
+            if (request.clientID) {
+                params.clientID = clientId;
+                request.params = params;
+            }
 
-var _csrf2 = _interopRequireDefault(_csrf);
+            if (request.client_id) {
+                params.client_id = clientId;
+                request.params = params;
+            }
 
-var _error = require('./interceptor/error');
+            return request;
+        });
+    }
+});
 
-var _error2 = _interopRequireDefault(_error);
+let { a, b } = qipp;
 
-var _clientId = require('./interceptor/clientId');
-
-var _clientId2 = _interopRequireDefault(_clientId);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-var auth = function auth(_ref) {
-    var path = _ref.path;
-    var clientId = _ref.clientId;
-
-    return _rest2.default.wrap(_defaultRequest2.default, { mixin: { withCredentials: true } }).wrap(_clientId2.default, { clientId: clientId }).wrap(_csrf2.default, { path: path + 'csrf-token' }).wrap(_pathPrefix2.default, { prefix: path }).wrap(_mime2.default, { mime: 'application/json' }).wrap(_errorCode2.default, { code: 400 });
+const auth = ({ path, clientId }) => {
+    return rest.wrap(defaultRequest, { mixin: { withCredentials: true } }).wrap(clientIdInterceptor, { clientId }).wrap(csrf, { path: path + 'csrf-token' }).wrap(pathPrefix, { prefix: path }).wrap(mime, { mime: 'application/json' }).wrap(errorCode, { code: 400 });
 };
 
-var api = function api(_ref2) {
-    var path = _ref2.path;
-    var auth = _ref2.auth;
-
-    return _rest2.default.wrap(_defaultRequest2.default).wrap(_pathPrefix2.default, { prefix: path }).wrap(_mime2.default, { mime: 'application/json' }).wrap(_errorCode2.default, { code: 400 }).wrap(_qipp2.default, { auth: auth });
+const api = ({ path, auth }) => {
+    return rest.wrap(defaultRequest).wrap(pathPrefix, { prefix: path }).wrap(mime, { mime: 'application/json' }).wrap(errorCode, { code: 400 }).wrap(qipp, { auth });
 };
 
-exports.default = {
-    api: api,
-    auth: auth
+var index = {
+    api,
+    auth
 };
 
+export default index;
