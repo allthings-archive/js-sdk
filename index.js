@@ -10,9 +10,8 @@ import csrf from './interceptor/csrf'
 import error from './interceptor/error'
 import clientIdInterceptor from './interceptor/clientId'
 
-const auth = ({path, clientId}) => {
+const auth = ({path}) => {
     return rest.wrap(defaultRequest, { mixin: { withCredentials: true }})
-        .wrap(clientIdInterceptor, { clientId })
         .wrap(csrf, { path: path + 'csrf-token' })
         .wrap(pathPrefix, { prefix: path })
         .wrap(mime, { mime: 'application/json' })
