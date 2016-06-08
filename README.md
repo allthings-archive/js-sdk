@@ -4,7 +4,6 @@
 
 ```js
 import { auth, api } from 'allthings-js-sdk'
-import Store from '../store'
 
 const authClient = auth({
   path: 'https://allthings-app.dev.qipp.com/auth/',
