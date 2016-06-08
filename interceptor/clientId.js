@@ -1,39 +1,32 @@
 import interceptor from 'rest/interceptor';
-import when from 'when';
 
-let clientIdPromise = null;
+let clientIdConfig = null;
 
 export default interceptor({
     init: function (config) {
-        if (!config.clientId.then) {
-            clientIdPromise = when.resolve(config.clientId)
-        } else {
-            clientIdPromise = config.clientId
-        }
+        clientIdConfig = config.clientId
 
         return config
     },
 
     request: function (request, config, meta) {
-        return clientIdPromise.then(clientId => {
-            let params = request.params || {}
+        let params = request.params || {}
 
-            if (request.clientId) {
-                params.clientId = clientId;
-                request.params = params;
-            }
+        if (request.clientId) {
+            params.clientId = clientIdConfig;
+            request.params = params;
+        }
 
-            if (request.clientID) {
-                params.clientID = clientId;
-                request.params = params;
-            }
+        if (request.clientID) {
+            params.clientID = clientIdConfig;
+            request.params = params;
+        }
 
-            if (request.client_id) {
-                params.client_id = clientId;
-                request.params = params;
-            }
+        if (request.client_id) {
+            params.client_id = clientIdConfig;
+            request.params = params;
+        }
 
-            return request
-        })
+        return request
     }
 });
