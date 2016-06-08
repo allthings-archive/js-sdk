@@ -6,7 +6,10 @@ export default {
   moduleName: 'sdk',
   plugins: [
     babel({
-      exclude: 'node_modules/**'
+      exclude: 'node_modules/**',
+      babelrc: false,
+      presets: [ 'es2015-rollup', 'stage-0', 'react' ]
+
     })
   ]
 }
