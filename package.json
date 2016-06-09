@@ -1,13 +1,18 @@
 {
   "name": "allthings-js-sdk",
-  "private": true,
-  "version": "1.0.0",
-  "description": "",
+  "version": "0.0.0",
+  "description": "JavaScript SDK for communication with the Allthings API",
   "main": "dist/index.js",
   "scripts": {
     "build": "rollup -c rollup.js > dist/index.js"
   },
-  "author": "Moritz Schwoerer",
+  "homepage": "https://www.qipp.com/",
+  "license": "MIT",
+  "author": {
+    "name": "qipp",
+    "email": "dev@qipp.com",
+    "url": "https://www.qipp.com/"
+  },
   "dependencies": {
     "cookie": "^0.2.3",
     "rest": "^1.3.1",
@@ -19,5 +24,9 @@
     "babel-preset-es2015-rollup": "^1.1.1",
     "babel-preset-stage-0": "^6.5.0",
     "rollup-plugin-babel": "^2.5.0"
+  },
+  "scripts": {
+    "version": "git add -A",
+    "postversion": "git push --tags origin master && npm publish"
   }
 }
