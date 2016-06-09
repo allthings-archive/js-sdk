@@ -1,15 +1,15 @@
-import babel from 'rollup-plugin-babel';
+import babel from 'rollup-plugin-babel'
 
 export default {
+  dest: 'dist/index.js',
   entry: 'index.js',
-  format: 'umd',
+  format: 'cjs',
   moduleName: 'sdk',
   plugins: [
     babel({
-      exclude: 'node_modules/**',
       babelrc: false,
-      presets: [ 'es2015-rollup', 'stage-0']
-
+      exclude: 'node_modules/**',
+      presets: ['es2015-rollup', 'stage-0']
     })
   ]
 }

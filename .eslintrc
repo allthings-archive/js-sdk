@@ -1,0 +1,19 @@
+{
+  "extends": [
+    "eslint:recommended",
+    "plugin:react/recommended",
+    "standard"
+  ],
+  "globals": {
+    "React": true
+  },
+  "parser": "babel-eslint",
+  "plugins": [
+    "flowtype",
+    "react"
+  ],
+  "rules": {
+    "no-console": "off",
+    "react/jsx-indent-props": "off"
+  }
+}
