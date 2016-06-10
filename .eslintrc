@@ -1,16 +1,10 @@
 {
   "extends": [
-    "eslint:recommended",
-    "plugin:react/recommended",
     "standard"
   ],
-  "globals": {
-    "React": true
-  },
   "parser": "babel-eslint",
   "plugins": [
-    "flowtype",
-    "react"
+    "flowtype"
   ],
   "rules": {
     "no-console": "off",
