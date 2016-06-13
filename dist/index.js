@@ -123,7 +123,7 @@
 
   var clientIdConfig = null;
 
-  interceptor({
+  var clientIdInterceptor = interceptor({
       init: function init(config) {
           clientIdConfig = config.clientId;
 
@@ -154,8 +154,9 @@
 
   var auth = function auth(_ref) {
       var path = _ref.path;
+      var clientId = _ref.clientId;
 
-      return rest.wrap(defaultRequest, { mixin: { withCredentials: true } }).wrap(csrf, { path: path + 'csrf-token' }).wrap(pathPrefix, { prefix: path }).wrap(mime, { mime: 'application/json' }).wrap(errorCode, { code: 400 });
+      return rest.wrap(defaultRequest, { mixin: { withCredentials: true } }).wrap(clientIdInterceptor, { clientId: clientId }).wrap(csrf, { path: path + 'csrf-token' }).wrap(pathPrefix, { prefix: path }).wrap(mime, { mime: 'application/json' }).wrap(errorCode, { code: 400 });
   };
 
   var api = function api(_ref2) {
