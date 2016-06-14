@@ -5,7 +5,7 @@ import errorCode from 'rest/interceptor/errorCode'
 import defaultRequest from 'rest/interceptor/defaultRequest'
 import pathPrefix from 'rest/interceptor/pathPrefix'
 
-import qipp from './interceptor/qipp'
+import accessToken from './interceptor/accessToken'
 import csrf from './interceptor/csrf'
 import clientIdInterceptor from './interceptor/clientId'
 
@@ -18,12 +18,12 @@ const auth = ({ path, clientId }) => {
     .wrap(errorCode, { code: 400 })
 }
 
-const api = ({ path, auth }) => {
+const api = ({ path, token }) => {
   return rest.wrap(defaultRequest)
     .wrap(pathPrefix, { prefix: path })
     .wrap(mime, { mime: 'application/json' })
     .wrap(errorCode, { code: 400 })
-    .wrap(qipp, { auth })
+    .wrap(accessToken, { bearerToken: token })
 }
 
 export default {
