@@ -2,7 +2,6 @@
   "name": "allthings-js-sdk",
   "version": "0.3.0",
   "description": "JavaScript SDK for communication with the Allthings API",
-  "private": true,
   "keywords": [
     "allthings",
     "app"
