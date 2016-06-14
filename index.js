@@ -7,26 +7,27 @@ import pathPrefix from 'rest/interceptor/pathPrefix'
 
 import qipp from './interceptor/qipp'
 import csrf from './interceptor/csrf'
-// import error from './interceptor/error'
-// import clientIdInterceptor from './interceptor/clientId'
+import error from './interceptor/error'
+import clientIdInterceptor from './interceptor/clientId'
 
-const auth = ({ path }) => {
-  return rest.wrap(defaultRequest, { mixin: { withCredentials: true } })
-    .wrap(csrf, { path: path + 'csrf-token' })
-    .wrap(pathPrefix, { prefix: path })
-    .wrap(mime, { mime: 'application/json' })
-    .wrap(errorCode, { code: 400 })
+const auth = ({path, clientId}) => {
+    return rest.wrap(defaultRequest, { mixin: { withCredentials: true }})
+        .wrap(clientIdInterceptor, { clientId })
+        .wrap(csrf, { path: path + 'csrf-token' })
+        .wrap(pathPrefix, { prefix: path })
+        .wrap(mime, { mime: 'application/json' })
+        .wrap(errorCode, { code: 400 })
 }
 
-const api = ({ path, auth }) => {
-  return rest.wrap(defaultRequest)
-    .wrap(pathPrefix, { prefix: path })
-    .wrap(mime, { mime: 'application/json' })
-    .wrap(errorCode, { code: 400 })
-    .wrap(qipp, { auth })
+const api = ({path, auth}) => {
+    return rest.wrap(defaultRequest)
+        .wrap(pathPrefix, { prefix: path })
+        .wrap(mime, { mime: 'application/json' })
+        .wrap(errorCode, { code: 400 })
+        .wrap(qipp, { auth })
 }
 
 export default {
-  api,
-  auth
+    api,
+    auth
 }
