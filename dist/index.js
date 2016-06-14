@@ -8,58 +8,15 @@ var errorCode = _interopDefault(require('rest/interceptor/errorCode'));
 var defaultRequest = _interopDefault(require('rest/interceptor/defaultRequest'));
 var pathPrefix = _interopDefault(require('rest/interceptor/pathPrefix'));
 var interceptor = _interopDefault(require('rest/interceptor'));
-var when = _interopDefault(require('when'));
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
-  return typeof obj;
-} : function (obj) {
-  return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj;
-};
+var accessToken = interceptor({
 
-// Auth client.
-var auth$1 = null;
+  request: function request(_request, config) {
+    var headers = void 0;
+    headers = _request.headers || (_request.headers = {});
+    headers.authorization = 'Bearer ' + config.bearerToken;
 
-var currentToken = null;
-// Token
-var token = function token() {
-  if (!currentToken) {
-    currentToken = when.promise(function (res, rej) {
-      auth$1({ path: 'access-token', client_id: true }).then(function (response) {
-        if (response.status.code === 200) {
-          res(response.entity.access_token);
-        } else {
-          rej(response.status.code);
-        }
-      });
-    });
-  }
-
-  return currentToken;
-};
-
-var qipp = interceptor({
-  init: function init(config) {
-    auth$1 = config.auth;
-
-    return config;
-  },
-  request: function request(_request, config, meta) {
-    return token().then(function (bearerToken) {
-      var headers = void 0;
-      headers = _request.headers || (_request.headers = {});
-      headers.authorization = 'Bearer ' + bearerToken;
-
-      return _request;
-    });
-  },
-  success: function success(response, config, meta) {
-    var entity = response.entity;
-
-    if ((typeof entity === 'undefined' ? 'undefined' : _typeof(entity)) === 'object' && entity.access_token) {
-      auth$1 = entity;
-    }
-
-    return response;
+    return _request;
   }
 });
 
@@ -139,9 +96,9 @@ var auth = function auth(_ref) {
 
 var api = function api(_ref2) {
   var path = _ref2.path;
-  var auth = _ref2.auth;
+  var token = _ref2.token;
 
-  return rest.wrap(defaultRequest).wrap(pathPrefix, { prefix: path }).wrap(mime, { mime: 'application/json' }).wrap(errorCode, { code: 400 }).wrap(qipp, { auth: auth });
+  return rest.wrap(defaultRequest).wrap(pathPrefix, { prefix: path }).wrap(mime, { mime: 'application/json' }).wrap(errorCode, { code: 400 }).wrap(accessToken, { bearerToken: token });
 };
 
 var index = {
