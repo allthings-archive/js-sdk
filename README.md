@@ -1,6 +1,6 @@
-# js-sdk
+# js-sdk [![Build Status](https://travis-ci.org/qipp/js-sdk.svg?branch=master)](https://travis-ci.org/qipp/js-sdk)
 
-## example 
+## Example
 
 ```js
 import { auth, api } from 'allthings-js-sdk'
@@ -21,6 +21,6 @@ export default {
 }
 ```
 
-## based on 
+## Based on
 
 https://github.com/cujojs/rest

@@ -1,0 +1,13 @@
+{
+  "extends": [
+    "standard"
+  ],
+  "parser": "babel-eslint",
+  "plugins": [
+    "flowtype"
+  ],
+  "rules": {
+    "no-console": "off",
+    "react/jsx-indent-props": "off"
+  }
+}
