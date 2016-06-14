@@ -14,7 +14,7 @@ var accessToken = interceptor({
   request: function request(_request, config) {
     var headers = void 0;
     headers = _request.headers || (_request.headers = {});
-    headers.authorization = 'Bearer ' + config.bearerToken;
+    headers.authorization = 'Bearer ' + _request.bearerToken || config.bearerToken;
 
     return _request;
   }
