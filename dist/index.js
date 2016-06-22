@@ -12,9 +12,13 @@ var interceptor = _interopDefault(require('rest/interceptor'));
 var accessToken = interceptor({
 
   request: function request(_request, config) {
-    var headers = void 0;
-    headers = _request.headers || (_request.headers = {});
-    headers.authorization = 'Bearer ' + (_request.bearerToken || config.bearerToken);
+    var bearerToken = _request.bearerToken || config.bearerToken;
+
+    if (bearerToken) {
+      var headers = void 0;
+      headers = _request.headers || (_request.headers = {});
+      headers.Authorization = 'Bearer ' + bearerToken;
+    }
 
     return _request;
   }
@@ -90,8 +94,9 @@ var clientIdInterceptor = interceptor({
 var auth = function auth(_ref) {
   var path = _ref.path;
   var clientId = _ref.clientId;
+  var token = _ref.token;
 
-  return rest.wrap(defaultRequest, { mixin: { withCredentials: true } }).wrap(clientIdInterceptor, { clientId: clientId }).wrap(csrf, { path: path + 'csrf-token' }).wrap(pathPrefix, { prefix: path }).wrap(mime, { mime: 'application/json' }).wrap(errorCode, { code: 400 });
+  return rest.wrap(defaultRequest, { mixin: { withCredentials: true } }).wrap(clientIdInterceptor, { clientId: clientId }).wrap(csrf, { path: path + 'csrf-token' }).wrap(pathPrefix, { prefix: path }).wrap(mime, { mime: 'application/json' }).wrap(errorCode, { code: 400 }).wrap(accessToken, { bearerToken: token });
 };
 
 var api = function api(_ref2) {

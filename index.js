@@ -9,13 +9,14 @@ import accessToken from './interceptor/accessToken'
 import csrf from './interceptor/csrf'
 import clientIdInterceptor from './interceptor/clientId'
 
-const auth = ({ path, clientId }) => {
+const auth = ({ path, clientId, token }) => {
   return rest.wrap(defaultRequest, { mixin: { withCredentials: true } })
     .wrap(clientIdInterceptor, { clientId })
     .wrap(csrf, { path: path + 'csrf-token' })
     .wrap(pathPrefix, { prefix: path })
     .wrap(mime, { mime: 'application/json' })
     .wrap(errorCode, { code: 400 })
+    .wrap(accessToken, { bearerToken: token })
 }
 
 const api = ({ path, token }) => {
