@@ -20,6 +20,7 @@ export default interceptor({
 
         return client({
           path: config.path,
+          accessToken: false,
           clientID: true,
           method: 'GET'
         })

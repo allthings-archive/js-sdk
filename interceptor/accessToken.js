@@ -59,7 +59,7 @@ function getClientId (request, config) {
 export default interceptor({
   request: function (request, config) {
     try {
-      return request.startSession
+      return request.accessToken === false
         ? request
         : getAccessToken(getClientId(request, config), config.uuid || noSSR).then(accessToken => {
           updateHeaders(request, accessToken)
@@ -72,8 +72,8 @@ export default interceptor({
 
   response: function (response, config, meta) {
     try {
-      // Init a virtual session linked to the uuid if the startSession parameter is provided.
-      if (response.request.startSession) {
+      // Init a virtual session linked to the uuid if the accessToken parameter is provided.
+      if (response.request.accessToken === false) {
         session.initAccessTokenSession(config.uuid, JSON.parse(response.entity).access_token)
       }
       // Check for invalid access-token status codes.

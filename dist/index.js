@@ -93,7 +93,7 @@ function getClientId(request, config) {
 var accessToken = interceptor({
   request: function request(_request, config) {
     try {
-      return _request.startSession ? _request : getAccessToken(getClientId(_request, config), config.uuid || noSSR).then(function (accessToken) {
+      return _request.accessToken === false ? _request : getAccessToken(getClientId(_request, config), config.uuid || noSSR).then(function (accessToken) {
         updateHeaders(_request, accessToken);
         return _request;
       });
@@ -104,8 +104,8 @@ var accessToken = interceptor({
 
   response: function response(_response, config, meta) {
     try {
-      // Init a virtual session linked to the uuid if the startSession parameter is provided.
-      if (_response.request.startSession) {
+      // Init a virtual session linked to the uuid if the accessToken parameter is provided.
+      if (_response.request.accessToken === false) {
         session.initAccessTokenSession(config.uuid, JSON.parse(_response.entity).access_token);
       }
       // Check for invalid access-token status codes.
@@ -145,6 +145,7 @@ var csrf = interceptor({
 
         return client({
           path: config.path,
+          accessToken: false,
           clientID: true,
           method: 'GET'
         }).then(function (response) {
