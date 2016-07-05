@@ -45,7 +45,7 @@
     "build": "rollup -c rollup.js",
     "std": "standard --verbose | snazzy",
     "test": "ava -v --fail-fast --no-cache",
-    "preversion": "git pull && npm up",
+    "preversion": "git pull && npm up && npm run build",
     "version": "git add -A",
     "postversion": "git push --tags origin HEAD"
   },
