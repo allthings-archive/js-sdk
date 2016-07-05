@@ -4,7 +4,7 @@ export default interceptor({
   error: function (response) {
     return {
       error: {
-        message: response.entity ? response.entity : '',
+        message: response.entity || '',
         status: response.status
       }
     }

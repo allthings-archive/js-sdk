@@ -1,5 +1,6 @@
 import rest from 'rest'
 
+// Interceptors
 import mime from 'rest/interceptor/mime'
 import errorCode from 'rest/interceptor/errorCode'
 import defaultRequest from 'rest/interceptor/defaultRequest'
@@ -9,25 +10,32 @@ import accessToken from './interceptor/accessToken'
 import csrf from './interceptor/csrf'
 import clientIdInterceptor from './interceptor/clientId'
 
-const auth = ({ path, clientId, token }) => {
-  return rest.wrap(defaultRequest, { mixin: { withCredentials: true } })
+// Utils
+import accessTokenSession from './utils/accessTokenSession'
+
+const auth = ({ path, clientId, uuid }) => {
+  return rest
+    .wrap(defaultRequest, { mixin: { withCredentials: true } })
+    .wrap(accessToken, { uuid })
     .wrap(clientIdInterceptor, { clientId })
     .wrap(csrf, { path: path + 'csrf-token' })
     .wrap(pathPrefix, { prefix: path })
     .wrap(mime, { mime: 'application/json' })
     .wrap(errorCode, { code: 400 })
-    .wrap(accessToken, { bearerToken: token })
 }
 
-const api = ({ path, token }) => {
-  return rest.wrap(defaultRequest)
+const api = ({ path, clientId, uuid }) => {
+  return rest
+    .wrap(defaultRequest)
+    .wrap(accessToken, { uuid })
+    .wrap(clientIdInterceptor, { clientId })
     .wrap(pathPrefix, { prefix: path })
     .wrap(mime, { mime: 'application/json' })
     .wrap(errorCode, { code: 400 })
-    .wrap(accessToken, { bearerToken: token })
 }
 
 export default {
   api,
-  auth
+  auth,
+  accessTokenSession
 }
