@@ -76,12 +76,25 @@ function updateHeaders(request, accessToken) {
   }
 }
 
+function getClientId(request, config) {
+  try {
+    var params = request.params;
+
+    if (params && (params.client_id || params.clientId || params.clientID)) {
+      return params.client_id || params.clientId || params.clientID;
+    } else {
+      return config.clientId;
+    }
+  } catch (e) {
+    console.error(e);
+  }
+}
+
 var accessToken = interceptor({
   request: function request(_request, config) {
     try {
-      return _request.startSession ? _request : getAccessToken(_request.params.client_id, config.uuid || noSSR).then(function (accessToken) {
+      return _request.startSession ? _request : getAccessToken(getClientId(_request, config), config.uuid || noSSR).then(function (accessToken) {
         updateHeaders(_request, accessToken);
-
         return _request;
       });
     } catch (e) {
@@ -98,7 +111,7 @@ var accessToken = interceptor({
       // Check for invalid access-token status codes.
       if (_response.status.code === 401 || _response.status.code === 0) {
         // Perform the request again after renewing the access-token.
-        return getAccessToken(_response.request.params.client_id, config.uuid || noSSR, true).then(function (accessToken) {
+        return getAccessToken(getClientId(_response.request, config), config.uuid || noSSR, true).then(function (accessToken) {
           updateHeaders(_response.request, accessToken);
 
           return meta.client(_response.request);
@@ -192,7 +205,7 @@ var auth = function auth(_ref) {
   var clientId = _ref.clientId;
   var uuid = _ref.uuid;
 
-  return rest.wrap(defaultRequest, { mixin: { withCredentials: true } }).wrap(accessToken, { uuid: uuid }).wrap(clientIdInterceptor, { clientId: clientId }).wrap(csrf, { path: path + 'csrf-token' }).wrap(pathPrefix, { prefix: path }).wrap(mime, { mime: 'application/json' }).wrap(errorCode, { code: 400 });
+  return rest.wrap(defaultRequest, { mixin: { withCredentials: true } }).wrap(accessToken, { uuid: uuid, clientId: clientId }).wrap(clientIdInterceptor, { clientId: clientId }).wrap(csrf, { path: path + 'csrf-token' }).wrap(pathPrefix, { prefix: path }).wrap(mime, { mime: 'application/json' }).wrap(errorCode, { code: 400 });
 };
 
 var api = function api(_ref2) {
@@ -200,7 +213,7 @@ var api = function api(_ref2) {
   var clientId = _ref2.clientId;
   var uuid = _ref2.uuid;
 
-  return rest.wrap(defaultRequest).wrap(accessToken, { uuid: uuid }).wrap(clientIdInterceptor, { clientId: clientId }).wrap(pathPrefix, { prefix: path }).wrap(mime, { mime: 'application/json' }).wrap(errorCode, { code: 400 });
+  return rest.wrap(defaultRequest).wrap(accessToken, { uuid: uuid, clientId: clientId }).wrap(clientIdInterceptor, { clientId: clientId }).wrap(pathPrefix, { prefix: path }).wrap(mime, { mime: 'application/json' }).wrap(errorCode, { code: 400 });
 };
 
 var index = {

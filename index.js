@@ -16,7 +16,7 @@ import accessTokenSession from './utils/accessTokenSession'
 const auth = ({ path, clientId, uuid }) => {
   return rest
     .wrap(defaultRequest, { mixin: { withCredentials: true } })
-    .wrap(accessToken, { uuid })
+    .wrap(accessToken, { uuid, clientId })
     .wrap(clientIdInterceptor, { clientId })
     .wrap(csrf, { path: path + 'csrf-token' })
     .wrap(pathPrefix, { prefix: path })
@@ -27,7 +27,7 @@ const auth = ({ path, clientId, uuid }) => {
 const api = ({ path, clientId, uuid }) => {
   return rest
     .wrap(defaultRequest)
-    .wrap(accessToken, { uuid })
+    .wrap(accessToken, { uuid, clientId })
     .wrap(clientIdInterceptor, { clientId })
     .wrap(pathPrefix, { prefix: path })
     .wrap(mime, { mime: 'application/json' })

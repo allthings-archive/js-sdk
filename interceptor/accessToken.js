@@ -43,14 +43,26 @@ function updateHeaders (request, accessToken) {
   }
 }
 
+function getClientId (request, config) {
+  try {
+    const { params } = request
+    if (params && (params.client_id || params.clientId || params.clientID)) {
+      return params.client_id || params.clientId || params.clientID
+    } else {
+      return config.clientId
+    }
+  } catch (e) {
+    console.error(e)
+  }
+}
+
 export default interceptor({
   request: function (request, config) {
     try {
       return request.startSession
         ? request
-        : getAccessToken(request.params.client_id, config.uuid || noSSR).then(accessToken => {
+        : getAccessToken(getClientId(request, config), config.uuid || noSSR).then(accessToken => {
           updateHeaders(request, accessToken)
-
           return request
         })
     } catch (e) {
@@ -68,7 +80,7 @@ export default interceptor({
       if (response.status.code === 401 || response.status.code === 0) {
         // Perform the request again after renewing the access-token.
         return getAccessToken(
-          response.request.params.client_id,
+          getClientId(response.request, config),
           config.uuid || noSSR,
           true
         ).then(accessToken => {
