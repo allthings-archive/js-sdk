@@ -166,12 +166,24 @@ var csrf = interceptor({
 var clientIdInterceptor = interceptor({
 
   request: function request(_request, config) {
-    try {
-      if (config.clientId) _request.params = { client_id: config.clientId };
-      return _request;
-    } catch (e) {
-      console.error(e);
+    var params = _request.params || {};
+
+    if (_request.clientId) {
+      params.clientId = config.clientId;
+      _request.params = params;
     }
+
+    if (_request.clientID) {
+      params.clientID = config.clientId;
+      _request.params = params;
+    }
+
+    if (_request.client_id) {
+      params.client_id = config.clientId;
+      _request.params = params;
+    }
+
+    return _request;
   }
 });
 
