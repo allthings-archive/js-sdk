@@ -54,25 +54,27 @@ function isAccessTokenRequest (pathname) {
 }
 
 export default interceptor({
-	init: function (config) {
-		config.code = config.code || function() {};
-		return config;
-	},
+  init: function (config) {
+    config.code = config.code || function () {}
+    return config;
+  },
 
   request: function (request, config) {
     const { pathname } = parse(request.path)
-    return needsAccessToken(pathname) === false
-      ? request
-      : getAccessToken(
-          getClientId(request, config),
-          config.uuid || noSSR,
-          false,
-          config.callback
-        ).then(accessToken => {
-          if (!accessToken) throw new Error('Empty access-token provided!')
-          updateHeaders(request, accessToken)
-          return request
-        })
+    if (needsAccessToken(pathname) === true) {
+      return getAccessToken(
+        getClientId(request, config),
+        config.uuid || noSSR,
+        false,
+        config.callback
+      ).then(accessToken => {
+        if (!accessToken) throw new Error('Empty access-token provided!')
+        updateHeaders(request, accessToken)
+        return request
+      })
+    }
+
+    return request
   },
 
   response: function (response, config, meta) {
