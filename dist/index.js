@@ -9,6 +9,7 @@ var defaultRequest = _interopDefault(require('rest/interceptor/defaultRequest'))
 var pathPrefix = _interopDefault(require('rest/interceptor/pathPrefix'));
 var interceptor = _interopDefault(require('rest/interceptor'));
 var when = _interopDefault(require('when'));
+var parse = _interopDefault(require('url-parse'));
 
 var accessTokens = {};
 
@@ -39,132 +40,122 @@ var session = {
 var noSSR = 'singleClient';
 
 function getAccessToken(clientId, uuid, renew) {
-  try {
-    if (!session.accessTokens.hasOwnProperty(uuid) || renew) {
-      session.accessTokens[uuid] = when.promise(function (resolve, reject) {
-        rest({
-          method: 'GET',
-          path: 'auth/access-token',
-          params: { client_id: clientId },
-          withCredentials: true
-        }).then(function (response) {
-          if (response.status.code === 200) {
-            resolve(JSON.parse(response.entity).access_token);
-          } else {
-            reject(response.status.code);
-          }
-        });
+  if (!session.accessTokens.hasOwnProperty(uuid) || renew) {
+    session.accessTokens[uuid] = when.promise(function (resolve, reject) {
+      rest({
+        method: 'GET',
+        path: 'auth/access-token',
+        params: { client_id: clientId },
+        withCredentials: true
+      }).then(function (response) {
+        if (response.status.code === 200) {
+          resolve(JSON.parse(response.entity).access_token);
+        } else {
+          reject(response.status.code);
+        }
       });
-    }
-
-    return session.accessTokens[uuid];
-  } catch (e) {
-    console.error(e);
+    });
   }
+
+  return session.accessTokens[uuid];
 }
 
 function updateHeaders(request, accessToken) {
-  try {
-    if (!accessToken) throw new Error('Empty access-token provided!');
+  var headers = void 0;
 
-    var headers = void 0;
-
-    headers = request.headers || (request.headers = {});
-    headers.Authorization = 'Bearer ' + accessToken;
-  } catch (e) {
-    console.error(e);
-  }
+  headers = request.headers || (request.headers = {});
+  headers.Authorization = 'Bearer ' + accessToken;
 }
 
 function getClientId(request, config) {
-  try {
-    var params = request.params;
+  var params = request.params;
 
-    if (params && (params.client_id || params.clientId || params.clientID)) {
-      return params.client_id || params.clientId || params.clientID;
-    } else {
-      return config.clientId;
-    }
-  } catch (e) {
-    console.error(e);
+  if (params && (params.client_id || params.clientId || params.clientID)) {
+    return params.client_id || params.clientId || params.clientID;
+  } else {
+    return config.clientId;
   }
+}
+
+function needsAccessToken(pathname) {
+  return (/^\/+auth\/(?!logout).*$/i.test(pathname) === false
+  );
+}
+
+function isAccessTokenRequest(pathname) {
+  return (/^\/+auth\/(login|access-token)$/i.test(pathname)
+  );
 }
 
 var accessToken = interceptor({
   request: function request(_request, config) {
-    try {
-      return _request.accessToken === false ? _request : getAccessToken(getClientId(_request, config), config.uuid || noSSR).then(function (accessToken) {
-        updateHeaders(_request, accessToken);
-        return _request;
-      });
-    } catch (e) {
-      console.error(e);
-    }
+    var _parse = parse(_request.path);
+
+    var pathname = _parse.pathname;
+
+    return needsAccessToken(pathname) === false ? _request : getAccessToken(getClientId(_request, config), config.uuid || noSSR).then(function (accessToken) {
+      if (!accessToken) throw new Error('Empty access-token provided!');
+      updateHeaders(_request, accessToken);
+      return _request;
+    });
   },
 
   response: function response(_response, config, meta) {
-    try {
-      // Init a virtual session linked to the uuid if the accessToken parameter is provided.
-      if (_response.request.accessToken === false) {
-        session.initAccessTokenSession(config.uuid, JSON.parse(_response.entity).access_token);
-      }
-      // Check for invalid access-token status codes.
-      if (_response.status.code === 401 || _response.status.code === 0) {
-        // Perform the request again after renewing the access-token.
-        return getAccessToken(getClientId(_response.request, config), config.uuid || noSSR, true).then(function (accessToken) {
-          updateHeaders(_response.request, accessToken);
+    // Init a virtual session linked to the uuid if the accessToken parameter is provided.
 
-          return meta.client(_response.request);
-        });
-      }
+    var _parse2 = parse(_response.request.path);
 
-      return _response;
-    } catch (e) {
-      console.error(e);
+    var pathname = _parse2.pathname;
+
+    if (isAccessTokenRequest(pathname) && _response.code === 200) {
+      if (!_response.entity.access_token) {
+        console.error('Expected access token for request, but not in response!');
+      } else {
+        session.initAccessTokenSession(config.uuid, _response.entity.access_token);
+      }
     }
+    // Check for invalid access-token status codes.
+    if (_response.status.code === 401 || _response.status.code === 0) {
+      // Perform the request again after renewing the access-token.
+      return getAccessToken(getClientId(_response.request, config), config.uuid || noSSR, true).then(function (accessToken) {
+        if (!accessToken) throw new Error('Empty access-token provided!');
+        updateHeaders(_response.request, accessToken);
+
+        return meta.client(_response.request);
+      });
+    }
+
+    return _response;
   }
 });
 
 function getToken(response) {
-  try {
-    return response.entity.csrfToken;
-  } catch (e) {
-    console.error(e);
-  }
+  return response.entity.csrfToken;
 }
 
 var csrf = interceptor({
-  init: function init(config) {
-    // Do studd with the config.
-    return config;
-  },
   request: function request(_request, config, meta) {
-    try {
-      if (_request.requiresCsrf) {
-        var client = config.client || _request.originator || client.skip();
+    if (_request.requiresCsrf) {
+      var client = config.client || _request.originator || client.skip();
 
-        return client({
-          path: config.path,
-          accessToken: false,
-          clientID: true,
-          method: 'GET'
-        }).then(function (response) {
-          return {
-            csrfToken: getToken(response)
-          };
-        }).then(function (response) {
-          var entity = JSON.parse(_request.entity) || {};
-          entity.csrfToken = response.csrfToken;
-          _request.entity = JSON.stringify(entity);
+      return client({
+        path: config.path,
+        accessToken: false,
+        clientID: true,
+        method: 'GET'
+      }).then(function (response) {
+        return {
+          csrfToken: getToken(response)
+        };
+      }).then(function (response) {
+        var entity = _request.entity || {};
+        entity.csrfToken = response.csrfToken;
 
-          return _request;
-        });
-      }
-
-      return _request;
-    } catch (e) {
-      console.error(e);
+        return _request;
+      });
     }
+
+    return _request;
   },
   response: function response(_response, config, meta) {
     return _response;
@@ -206,7 +197,7 @@ var auth = function auth(_ref) {
   var clientId = _ref.clientId;
   var uuid = _ref.uuid;
 
-  return rest.wrap(defaultRequest, { mixin: { withCredentials: true } }).wrap(accessToken, { uuid: uuid, clientId: clientId }).wrap(clientIdInterceptor, { clientId: clientId }).wrap(csrf, { path: path + 'csrf-token' }).wrap(pathPrefix, { prefix: path }).wrap(mime, { mime: 'application/json' }).wrap(errorCode, { code: 400 });
+  return rest.wrap(defaultRequest, { mixin: { withCredentials: true } }).wrap(mime, { mime: 'application/json' }).wrap(accessToken, { uuid: uuid, clientId: clientId }).wrap(clientIdInterceptor, { clientId: clientId }).wrap(csrf, { path: path + 'csrf-token' }).wrap(pathPrefix, { prefix: path }).wrap(errorCode, { code: 400 });
 };
 
 var api = function api(_ref2) {
@@ -214,7 +205,7 @@ var api = function api(_ref2) {
   var clientId = _ref2.clientId;
   var uuid = _ref2.uuid;
 
-  return rest.wrap(defaultRequest).wrap(accessToken, { uuid: uuid, clientId: clientId }).wrap(clientIdInterceptor, { clientId: clientId }).wrap(pathPrefix, { prefix: path }).wrap(mime, { mime: 'application/json' }).wrap(errorCode, { code: 400 });
+  return rest.wrap(defaultRequest).wrap(mime, { mime: 'application/json' }).wrap(accessToken, { uuid: uuid, clientId: clientId }).wrap(clientIdInterceptor, { clientId: clientId }).wrap(pathPrefix, { prefix: path }).wrap(errorCode, { code: 400 });
 };
 
 var index = {

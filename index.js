@@ -16,21 +16,21 @@ import accessTokenSession from './utils/accessTokenSession'
 const auth = ({ path, clientId, uuid }) => {
   return rest
     .wrap(defaultRequest, { mixin: { withCredentials: true } })
+    .wrap(mime, { mime: 'application/json' })
     .wrap(accessToken, { uuid, clientId })
     .wrap(clientIdInterceptor, { clientId })
     .wrap(csrf, { path: path + 'csrf-token' })
     .wrap(pathPrefix, { prefix: path })
-    .wrap(mime, { mime: 'application/json' })
     .wrap(errorCode, { code: 400 })
 }
 
 const api = ({ path, clientId, uuid }) => {
   return rest
     .wrap(defaultRequest)
+    .wrap(mime, { mime: 'application/json' })
     .wrap(accessToken, { uuid, clientId })
     .wrap(clientIdInterceptor, { clientId })
     .wrap(pathPrefix, { prefix: path })
-    .wrap(mime, { mime: 'application/json' })
     .wrap(errorCode, { code: 400 })
 }
 
