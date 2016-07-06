@@ -6,7 +6,7 @@ import parse from 'url-parse'
 
 const noSSR = 'singleClient'
 
-function getAccessToken (clientId, uuid, renew) {
+function getAccessToken (clientId, uuid, renew, callback) {
   if (!session.accessTokens.hasOwnProperty(uuid) || renew) {
     session.accessTokens[uuid] = when.promise((resolve, reject) => {
       rest({
@@ -16,7 +16,9 @@ function getAccessToken (clientId, uuid, renew) {
         withCredentials: true
       }).then(response => {
         if (response.status.code === 200) {
-          resolve(JSON.parse(response.entity).access_token)
+          const token = JSON.parse(response.entity).access_token;
+          resolve(token)
+          callback(token)
         } else {
           reject(response.status.code)
         }
@@ -52,15 +54,25 @@ function isAccessTokenRequest (pathname) {
 }
 
 export default interceptor({
+	init: function (config) {
+		config.code = config.code || function() {};
+		return config;
+	},
+
   request: function (request, config) {
     const { pathname } = parse(request.path)
     return needsAccessToken(pathname) === false
       ? request
-      : getAccessToken(getClientId(request, config), config.uuid || noSSR).then(accessToken => {
-        if (!accessToken) throw new Error('Empty access-token provided!')
-        updateHeaders(request, accessToken)
-        return request
-      })
+      : getAccessToken(
+          getClientId(request, config),
+          config.uuid || noSSR,
+          false,
+          config.callback
+        ).then(accessToken => {
+          if (!accessToken) throw new Error('Empty access-token provided!')
+          updateHeaders(request, accessToken)
+          return request
+        })
   },
 
   response: function (response, config, meta) {
@@ -79,7 +91,8 @@ export default interceptor({
       return getAccessToken(
         getClientId(response.request, config),
         config.uuid || noSSR,
-        true
+        true,
+        config.callback
       ).then(accessToken => {
         if (!accessToken) throw new Error('Empty access-token provided!')
         updateHeaders(response.request, accessToken)
