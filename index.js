@@ -13,7 +13,7 @@ import clientIdInterceptor from './interceptor/clientId'
 // Utils
 import accessTokenSession from './utils/accessTokenSession'
 
-const auth = ({ path, clientId, uuid }) => {
+const auth = (path, clientId, uuid, callback) => {
   return rest
     .wrap(defaultRequest, { mixin: { withCredentials: true } })
     .wrap(mime, { mime: 'application/json' })
@@ -24,7 +24,7 @@ const auth = ({ path, clientId, uuid }) => {
     .wrap(errorCode, { code: 400 })
 }
 
-const api = ({ path, clientId, uuid }) => {
+const api = (path, clientId, uuid, callback) => {
   return rest
     .wrap(defaultRequest)
     .wrap(mime, { mime: 'application/json' })
