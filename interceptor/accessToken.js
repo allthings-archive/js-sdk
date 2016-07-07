@@ -16,7 +16,7 @@ function getAccessToken (clientId, uuid, renew, callback) {
         withCredentials: true
       }).then(response => {
         if (response.status.code === 200) {
-          const token = JSON.parse(response.entity).access_token;
+          const token = JSON.parse(response.entity).access_token
           resolve(token)
           callback(token)
         } else {
@@ -56,7 +56,7 @@ function isAccessTokenRequest (pathname) {
 export default interceptor({
   init: function (config) {
     config.code = config.code || function () {}
-    return config;
+    return config
   },
 
   request: function (request, config) {
