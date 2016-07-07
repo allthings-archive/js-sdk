@@ -39,7 +39,7 @@ var session = {
 
 var noSSR = 'singleClient';
 
-function getAccessToken(clientId, uuid, renew) {
+function getAccessToken(clientId, uuid, renew, callback) {
   if (!session.accessTokens.hasOwnProperty(uuid) || renew) {
     session.accessTokens[uuid] = when.promise(function (resolve, reject) {
       rest({
@@ -49,7 +49,9 @@ function getAccessToken(clientId, uuid, renew) {
         withCredentials: true
       }).then(function (response) {
         if (response.status.code === 200) {
-          resolve(JSON.parse(response.entity).access_token);
+          var token = JSON.parse(response.entity).access_token;
+          resolve(token);
+          callback(token);
         } else {
           reject(response.status.code);
         }
@@ -88,16 +90,25 @@ function isAccessTokenRequest(pathname) {
 }
 
 var accessToken = interceptor({
+  init: function init(config) {
+    config.code = config.code || function () {};
+    return config;
+  },
+
   request: function request(_request, config) {
     var _parse = parse(_request.path);
 
     var pathname = _parse.pathname;
 
-    return needsAccessToken(pathname) === false ? _request : getAccessToken(getClientId(_request, config), config.uuid || noSSR).then(function (accessToken) {
-      if (!accessToken) throw new Error('Empty access-token provided!');
-      updateHeaders(_request, accessToken);
-      return _request;
-    });
+    if (needsAccessToken(pathname) === true) {
+      return getAccessToken(getClientId(_request, config), config.uuid || noSSR, false, config.callback).then(function (accessToken) {
+        if (!accessToken) throw new Error('Empty access-token provided!');
+        updateHeaders(_request, accessToken);
+        return _request;
+      });
+    }
+
+    return _request;
   },
 
   response: function response(_response, config, meta) {
@@ -117,7 +128,7 @@ var accessToken = interceptor({
     // Check for invalid access-token status codes.
     if (_response.status.code === 401 || _response.status.code === 0) {
       // Perform the request again after renewing the access-token.
-      return getAccessToken(getClientId(_response.request, config), config.uuid || noSSR, true).then(function (accessToken) {
+      return getAccessToken(getClientId(_response.request, config), config.uuid || noSSR, true, config.callback).then(function (accessToken) {
         if (!accessToken) throw new Error('Empty access-token provided!');
         updateHeaders(_response.request, accessToken);
 
@@ -192,20 +203,12 @@ var clientIdInterceptor = interceptor({
   }
 });
 
-var auth = function auth(_ref) {
-  var path = _ref.path;
-  var clientId = _ref.clientId;
-  var uuid = _ref.uuid;
-
-  return rest.wrap(defaultRequest, { mixin: { withCredentials: true } }).wrap(mime, { mime: 'application/json' }).wrap(accessToken, { uuid: uuid, clientId: clientId }).wrap(clientIdInterceptor, { clientId: clientId }).wrap(csrf, { path: path + 'csrf-token' }).wrap(pathPrefix, { prefix: path }).wrap(errorCode, { code: 400 });
+var auth = function auth(path, clientId, uuid, callback) {
+  return rest.wrap(defaultRequest, { mixin: { withCredentials: true } }).wrap(mime, { mime: 'application/json' }).wrap(accessToken, { uuid: uuid, clientId: clientId, callback: callback }).wrap(clientIdInterceptor, { clientId: clientId }).wrap(csrf, { path: path + 'csrf-token' }).wrap(pathPrefix, { prefix: path }).wrap(errorCode, { code: 400 });
 };
 
-var api = function api(_ref2) {
-  var path = _ref2.path;
-  var clientId = _ref2.clientId;
-  var uuid = _ref2.uuid;
-
-  return rest.wrap(defaultRequest).wrap(mime, { mime: 'application/json' }).wrap(accessToken, { uuid: uuid, clientId: clientId }).wrap(clientIdInterceptor, { clientId: clientId }).wrap(pathPrefix, { prefix: path }).wrap(errorCode, { code: 400 });
+var api = function api(path, clientId, uuid, callback) {
+  return rest.wrap(defaultRequest).wrap(mime, { mime: 'application/json' }).wrap(accessToken, { uuid: uuid, clientId: clientId, callback: callback }).wrap(clientIdInterceptor, { clientId: clientId }).wrap(pathPrefix, { prefix: path }).wrap(errorCode, { code: 400 });
 };
 
 var index = {
