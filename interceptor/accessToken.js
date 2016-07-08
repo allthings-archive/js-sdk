@@ -50,7 +50,7 @@ function needsAccessToken (pathname) {
 }
 
 function isAccessTokenRequest (pathname) {
-  return (/^\/+auth\/(access-token|login|password-reset)$/i).test(pathname)
+  return (/^\/+auth\/(access-token|login|password-reset\/[A-Za-z0-9]*)$/i).test(pathname)
 }
 
 export default interceptor({
