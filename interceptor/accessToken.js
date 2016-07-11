@@ -6,12 +6,13 @@ import parse from 'url-parse'
 
 const noSSR = 'singleClient'
 
-function getAccessToken (clientId, uuid, renew, callback) {
+function getAccessToken (authHost, clientId, uuid, renew, callback) {
   if (!session.accessTokens.hasOwnProperty(uuid) || renew) {
     session.accessTokens[uuid] = when.promise((resolve, reject) => {
+      const host = authHost.replace(/\/$/, '')
       rest({
         method: 'GET',
-        path: 'auth/access-token',
+        path: host + '/auth/access-token',
         params: { client_id: clientId },
         withCredentials: true
       }).then(response => {
@@ -63,6 +64,7 @@ export default interceptor({
     const { pathname } = parse(request.path)
     if (needsAccessToken(pathname) === true) {
       return getAccessToken(
+        config.authHost,
         getClientId(request, config),
         config.uuid || noSSR,
         false,
@@ -91,6 +93,7 @@ export default interceptor({
     if (response.status.code === 401 || response.status.code === 0) {
       // Perform the request again after renewing the access-token.
       return getAccessToken(
+        config.authHost,
         getClientId(response.request, config),
         config.uuid || noSSR,
         true,
