@@ -38,12 +38,13 @@ var session = {
 
 var noSSR = 'singleClient';
 
-function getAccessToken(clientId, uuid, renew, callback) {
+function getAccessToken(authHost, clientId, uuid, renew, callback) {
   if (!session.accessTokens.hasOwnProperty(uuid) || renew) {
     session.accessTokens[uuid] = when.promise(function (resolve, reject) {
+      var host = authHost.replace(/\/$/, '');
       rest({
         method: 'GET',
-        path: 'auth/access-token',
+        path: host + '/auth/access-token',
         params: { client_id: clientId },
         withCredentials: true
       }).then(function (response) {
@@ -100,7 +101,7 @@ var accessToken = interceptor({
     var pathname = _parse.pathname;
 
     if (needsAccessToken(pathname) === true) {
-      return getAccessToken(getClientId(_request, config), config.uuid || noSSR, false, config.callback).then(function (accessToken) {
+      return getAccessToken(config.authHost, getClientId(_request, config), config.uuid || noSSR, false, config.callback).then(function (accessToken) {
         if (!accessToken) throw new Error('Empty access-token provided!');
         updateHeaders(_request, accessToken);
         return _request;
@@ -127,7 +128,7 @@ var accessToken = interceptor({
     // Check for invalid access-token status codes.
     if (_response.status.code === 401 || _response.status.code === 0) {
       // Perform the request again after renewing the access-token.
-      return getAccessToken(getClientId(_response.request, config), config.uuid || noSSR, true, config.callback).then(function (accessToken) {
+      return getAccessToken(config.authHost, getClientId(_response.request, config), config.uuid || noSSR, true, config.callback).then(function (accessToken) {
         if (!accessToken) throw new Error('Empty access-token provided!');
         updateHeaders(_response.request, accessToken);
 
@@ -247,7 +248,7 @@ var withCredentials = interceptor({
 });
 
 var api = function api(authHost, apiHost, clientId, uuid, callback) {
-  return rest.wrap(withCredentials).wrap(mime, { mime: 'application/json' }).wrap(accessToken, { uuid: uuid, clientId: clientId, callback: callback }).wrap(clientIdInterceptor, { clientId: clientId }).wrap(csrf, { path: 'auth/csrf-token' }).wrap(pathPrefix, { authHost: authHost, apiHost: apiHost }).wrap(errorCode, { code: 400 });
+  return rest.wrap(withCredentials).wrap(mime, { mime: 'application/json' }).wrap(accessToken, { authHost: authHost, uuid: uuid, clientId: clientId, callback: callback }).wrap(clientIdInterceptor, { clientId: clientId }).wrap(csrf, { path: 'auth/csrf-token' }).wrap(pathPrefix, { authHost: authHost, apiHost: apiHost }).wrap(errorCode, { code: 400 });
 };
 
 var index = {

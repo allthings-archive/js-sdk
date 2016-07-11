@@ -17,7 +17,7 @@ const api = (authHost, apiHost, clientId, uuid, callback) => {
   return rest
     .wrap(withCredentials)
     .wrap(mime, { mime: 'application/json' })
-    .wrap(accessToken, { uuid, clientId, callback })
+    .wrap(accessToken, { authHost, uuid, clientId, callback })
     .wrap(clientIdInterceptor, { clientId })
     .wrap(csrf, { path: 'auth/csrf-token' })
     .wrap(pathPrefix, { authHost, apiHost })
