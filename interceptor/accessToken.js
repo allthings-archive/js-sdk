@@ -21,7 +21,7 @@ function getAccessToken (authHost, clientId, uuid, renew, callback) {
           resolve(token)
           callback(token)
         } else {
-          reject(response.status.code)
+          reject(response)
         }
       })
     })
@@ -47,11 +47,11 @@ function getClientId (request, config) {
 }
 
 function needsAccessToken (pathname) {
-  return (/^\/+auth\/(?!logout).*$/i).test(pathname) === false
+  return (/^\/*auth\/(?!logout).*$/i).test(pathname) === false
 }
 
 function isAccessTokenRequest (pathname) {
-  return (/^\/+auth\/(access-token|login|password-reset\/[A-Za-z0-9]*)$/i).test(pathname)
+  return (/^\/*auth\/(access-token|login|password-reset\/[A-Za-z0-9]*)$/i).test(pathname)
 }
 
 export default interceptor({

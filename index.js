@@ -21,7 +21,7 @@ const api = (authHost, apiHost, clientId, uuid, callback) => {
     .wrap(clientIdInterceptor, { clientId })
     .wrap(csrf, { path: 'auth/csrf-token' })
     .wrap(pathPrefix, { authHost, apiHost })
-    .wrap(errorCode, { code: 400 })
+    .wrap(errorCode, { code: 500 })
 }
 
 export default {

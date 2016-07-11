@@ -53,7 +53,7 @@ function getAccessToken(authHost, clientId, uuid, renew, callback) {
           resolve(token);
           callback(token);
         } else {
-          reject(response.status.code);
+          reject(response);
         }
       });
     });
@@ -80,12 +80,12 @@ function getClientId(request, config) {
 }
 
 function needsAccessToken(pathname) {
-  return (/^\/+auth\/(?!logout).*$/i.test(pathname) === false
+  return (/^\/*auth\/(?!logout).*$/i.test(pathname) === false
   );
 }
 
 function isAccessTokenRequest(pathname) {
-  return (/^\/+auth\/(access-token|login|password-reset\/[A-Za-z0-9]*)$/i.test(pathname)
+  return (/^\/*auth\/(access-token|login|password-reset\/[A-Za-z0-9]*)$/i.test(pathname)
   );
 }
 
@@ -248,7 +248,7 @@ var withCredentials = interceptor({
 });
 
 var api = function api(authHost, apiHost, clientId, uuid, callback) {
-  return rest.wrap(withCredentials).wrap(mime, { mime: 'application/json' }).wrap(accessToken, { authHost: authHost, uuid: uuid, clientId: clientId, callback: callback }).wrap(clientIdInterceptor, { clientId: clientId }).wrap(csrf, { path: 'auth/csrf-token' }).wrap(pathPrefix, { authHost: authHost, apiHost: apiHost }).wrap(errorCode, { code: 400 });
+  return rest.wrap(withCredentials).wrap(mime, { mime: 'application/json' }).wrap(accessToken, { authHost: authHost, uuid: uuid, clientId: clientId, callback: callback }).wrap(clientIdInterceptor, { clientId: clientId }).wrap(csrf, { path: 'auth/csrf-token' }).wrap(pathPrefix, { authHost: authHost, apiHost: apiHost }).wrap(errorCode, { code: 500 });
 };
 
 var index = {
