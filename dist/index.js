@@ -5,11 +5,10 @@ function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'defau
 var rest = _interopDefault(require('rest'));
 var mime = _interopDefault(require('rest/interceptor/mime'));
 var errorCode = _interopDefault(require('rest/interceptor/errorCode'));
-var defaultRequest = _interopDefault(require('rest/interceptor/defaultRequest'));
-var pathPrefix = _interopDefault(require('rest/interceptor/pathPrefix'));
 var interceptor = _interopDefault(require('rest/interceptor'));
 var when = _interopDefault(require('when'));
 var parse = _interopDefault(require('url-parse'));
+var UrlBuilder = _interopDefault(require('rest/UrlBuilder'));
 
 var accessTokens = {};
 
@@ -203,17 +202,56 @@ var clientIdInterceptor = interceptor({
   }
 });
 
-var auth = function auth(path, clientId, uuid, callback) {
-  return rest.wrap(defaultRequest, { mixin: { withCredentials: true } }).wrap(mime, { mime: 'application/json' }).wrap(accessToken, { uuid: uuid, clientId: clientId, callback: callback }).wrap(clientIdInterceptor, { clientId: clientId }).wrap(csrf, { path: path + 'csrf-token' }).wrap(pathPrefix, { prefix: path }).wrap(errorCode, { code: 400 });
-};
+function isAuthPath(pathname) {
+  return (/^\/?auth/.test(pathname)
+  );
+}
 
-var api = function api(path, clientId, uuid, callback) {
-  return rest.wrap(defaultRequest).wrap(mime, { mime: 'application/json' }).wrap(accessToken, { uuid: uuid, clientId: clientId, callback: callback }).wrap(clientIdInterceptor, { clientId: clientId }).wrap(pathPrefix, { prefix: path }).wrap(errorCode, { code: 400 });
+function startsWith(str, prefix) {
+  return str.indexOf(prefix) === 0;
+}
+
+function endsWith(str, suffix) {
+  return str.lastIndexOf(suffix) + suffix.length === str.length;
+}
+
+// Extended standard `prefix` interceptor
+var pathPrefix = interceptor({
+  request: function request(_request, config) {
+    if (!new UrlBuilder(_request.path).isFullyQualified()) {
+      var prefixPath = isAuthPath(_request.path) ? config.authHost : config.apiHost;
+
+      if (_request.path) {
+        if (!endsWith(prefixPath, '/') && !startsWith(_request.path, '/')) {
+          prefixPath += '/';
+        } else if (endsWith(prefixPath, '/') && startsWith(_request.path, '/')) {
+          prefixPath = prefixPath.slice(0, -1);
+        }
+        prefixPath += _request.path;
+      }
+      _request.path = prefixPath;
+    }
+
+    return _request;
+  }
+});
+
+var withCredentials = interceptor({
+  request: function request(_request) {
+    if (isAuthPath(_request.path)) {
+      _request.withCredentials = true;
+    }
+
+    return _request;
+  }
+});
+
+var api = function api(authHost, apiHost, clientId, uuid, callback) {
+  return rest.wrap(withCredentials).wrap(mime, { mime: 'application/json' }).wrap(accessToken, { uuid: uuid, clientId: clientId, callback: callback }).wrap(clientIdInterceptor, { clientId: clientId }).wrap(csrf, { path: 'auth/csrf-token' }).wrap(pathPrefix, { authHost: authHost, apiHost: apiHost }).wrap(errorCode, { code: 400 });
 };
 
 var index = {
   api: api,
-  auth: auth,
   accessTokenSession: session
 };
 
