@@ -91,11 +91,6 @@ function isAccessTokenRequest(pathname) {
 }
 
 var _accessToken = interceptor({
-  init: function init(config) {
-    config.code = config.code || function () {};
-    return config;
-  },
-
   request: function request(_request, config) {
     var _parse = parse(_request.path);
 
@@ -105,12 +100,7 @@ var _accessToken = interceptor({
         triggerAbort = void 0;
 
     var abort = new Promise(function (resolve, reject) {
-      triggerAbort = function triggerAbort(response) {
-        reject(response);
-        if (_request.cancel) {
-          _request.cancel();
-        }
-      };
+      triggerAbort = reject;
     });
 
     if (needsAccessToken(pathname) === true) {
@@ -124,9 +114,7 @@ var _accessToken = interceptor({
     }
 
     return new interceptor.ComplexRequest({ request: newRequest, abort: abort });
-    // return request
   },
-
   response: function response(_response, config, meta) {
     // Init a virtual session linked to the uuid if the accessToken parameter is provided.
 
