@@ -6,22 +6,29 @@ import parse from 'url-parse'
 
 const noSSR = 'singleClient'
 
-function getAccessToken (authHost, clientId, uuid, renew, callback) {
+function getAccessToken (authHost, clientId, uuid, renew, cookies, callback, err) {
   if (!session.accessTokens.hasOwnProperty(uuid) || renew) {
     session.accessTokens[uuid] = when.promise((resolve, reject) => {
       const host = authHost.replace(/\/$/, '')
-      rest({
+
+      const params = {
         method: 'GET',
         path: host + '/auth/access-token',
         params: { client_id: clientId },
         withCredentials: true
-      }).then(response => {
+      }
+
+      if (cookies !== null) {
+        params.headers = { Cookie: cookies }
+      }
+
+      rest(params).then(response => {
         if (response.status.code === 200) {
           const token = JSON.parse(response.entity).access_token
           resolve(token)
           callback(token)
         } else {
-          reject(response.status.code)
+          err(response)
         }
       })
     })
@@ -47,11 +54,11 @@ function getClientId (request, config) {
 }
 
 function needsAccessToken (pathname) {
-  return (/^\/+auth\/(?!logout).*$/i).test(pathname) === false
+  return (/^\/*auth\/(?!logout).*$/i).test(pathname) === false
 }
 
 function isAccessTokenRequest (pathname) {
-  return (/^\/+auth\/(access-token|login|password-reset\/[A-Za-z0-9]*)$/i).test(pathname)
+  return (/^\/*auth\/(access-token|login|password-reset\/[A-Za-z0-9]*)$/i).test(pathname)
 }
 
 export default interceptor({
@@ -62,27 +69,43 @@ export default interceptor({
 
   request: function (request, config) {
     const { pathname } = parse(request.path)
+    let newRequest, triggerAbort
+
+    const abort = new Promise(function (resolve, reject) {
+      triggerAbort = function(response) {
+        reject(response)
+        if (request.cancel) {
+          request.cancel()
+        }
+      };
+    })
+
     if (needsAccessToken(pathname) === true) {
-      return getAccessToken(
+      newRequest = getAccessToken(
         config.authHost,
         getClientId(request, config),
         config.uuid || noSSR,
         false,
-        config.callback
+        config.cookies,
+        config.callback,
+        triggerAbort
       ).then(accessToken => {
         if (!accessToken) throw new Error('Empty access-token provided!')
         updateHeaders(request, accessToken)
         return request
       })
+    } else {
+      newRequest = request
     }
 
-    return request
+    return new interceptor.ComplexRequest({ request: newRequest, abort: abort });
+    // return request
   },
 
   response: function (response, config, meta) {
     // Init a virtual session linked to the uuid if the accessToken parameter is provided.
     const { pathname } = parse(response.request.path)
-    if (isAccessTokenRequest(pathname) && response.code === 200) {
+    if (isAccessTokenRequest(pathname) && response.status.code === 200) {
       if (!response.entity.access_token) {
         console.error('Expected access token for request, but not in response!')
       } else {
@@ -97,6 +120,7 @@ export default interceptor({
         getClientId(response.request, config),
         config.uuid || noSSR,
         true,
+        config.cookies,
         config.callback
       ).then(accessToken => {
         if (!accessToken) throw new Error('Empty access-token provided!')

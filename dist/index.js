@@ -1,10 +1,12 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
-var rest = _interopDefault(require('rest'));
-var mime = _interopDefault(require('rest/interceptor/mime'));
-var errorCode = _interopDefault(require('rest/interceptor/errorCode'));
+var _rest = _interopDefault(require('rest'));
+var _mime = _interopDefault(require('rest/interceptor/mime'));
+var _errorCode = _interopDefault(require('rest/interceptor/errorCode'));
 var interceptor = _interopDefault(require('rest/interceptor'));
 var when = _interopDefault(require('when'));
 var parse = _interopDefault(require('url-parse'));
@@ -13,21 +15,13 @@ var UrlBuilder = _interopDefault(require('rest/UrlBuilder'));
 var accessTokens = {};
 
 var initAccessTokenSession = function initAccessTokenSession(uuid, accessToken) {
-  try {
-    accessTokens[uuid] = when.promise(function (resolve) {
-      resolve(accessToken);
-    });
-  } catch (e) {
-    console.error(e);
-  }
+  accessTokens[uuid] = when.promise(function (resolve) {
+    resolve(accessToken);
+  });
 };
 
 var killAccessTokenSession = function killAccessTokenSession(uuid) {
-  try {
-    delete accessTokens[uuid];
-  } catch (e) {
-    console.error(e);
-  }
+  delete accessTokens[uuid];
 };
 
 var session = {
@@ -38,22 +32,29 @@ var session = {
 
 var noSSR = 'singleClient';
 
-function getAccessToken(authHost, clientId, uuid, renew, callback) {
+function getAccessToken(authHost, clientId, uuid, renew, cookies, callback, err) {
   if (!session.accessTokens.hasOwnProperty(uuid) || renew) {
     session.accessTokens[uuid] = when.promise(function (resolve, reject) {
       var host = authHost.replace(/\/$/, '');
-      rest({
+
+      var params = {
         method: 'GET',
         path: host + '/auth/access-token',
         params: { client_id: clientId },
         withCredentials: true
-      }).then(function (response) {
+      };
+
+      if (cookies !== null) {
+        params.headers = { Cookie: cookies };
+      }
+
+      _rest(params).then(function (response) {
         if (response.status.code === 200) {
           var token = JSON.parse(response.entity).access_token;
           resolve(token);
           callback(token);
         } else {
-          reject(response.status.code);
+          err(response);
         }
       });
     });
@@ -80,16 +81,16 @@ function getClientId(request, config) {
 }
 
 function needsAccessToken(pathname) {
-  return (/^\/+auth\/(?!logout).*$/i.test(pathname) === false
+  return (/^\/*auth\/(?!logout).*$/i.test(pathname) === false
   );
 }
 
 function isAccessTokenRequest(pathname) {
-  return (/^\/+auth\/(access-token|login|password-reset\/[A-Za-z0-9]*)$/i.test(pathname)
+  return (/^\/*auth\/(access-token|login|password-reset\/[A-Za-z0-9]*)$/i.test(pathname)
   );
 }
 
-var accessToken = interceptor({
+var _accessToken = interceptor({
   init: function init(config) {
     config.code = config.code || function () {};
     return config;
@@ -100,15 +101,30 @@ var accessToken = interceptor({
 
     var pathname = _parse.pathname;
 
+    var newRequest = void 0,
+        triggerAbort = void 0;
+
+    var abort = new Promise(function (resolve, reject) {
+      triggerAbort = function triggerAbort(response) {
+        reject(response);
+        if (_request.cancel) {
+          _request.cancel();
+        }
+      };
+    });
+
     if (needsAccessToken(pathname) === true) {
-      return getAccessToken(config.authHost, getClientId(_request, config), config.uuid || noSSR, false, config.callback).then(function (accessToken) {
+      newRequest = getAccessToken(config.authHost, getClientId(_request, config), config.uuid || noSSR, false, config.cookies, config.callback, triggerAbort).then(function (accessToken) {
         if (!accessToken) throw new Error('Empty access-token provided!');
         updateHeaders(_request, accessToken);
         return _request;
       });
+    } else {
+      newRequest = _request;
     }
 
-    return _request;
+    return new interceptor.ComplexRequest({ request: newRequest, abort: abort });
+    // return request
   },
 
   response: function response(_response, config, meta) {
@@ -118,7 +134,7 @@ var accessToken = interceptor({
 
     var pathname = _parse2.pathname;
 
-    if (isAccessTokenRequest(pathname) && _response.code === 200) {
+    if (isAccessTokenRequest(pathname) && _response.status.code === 200) {
       if (!_response.entity.access_token) {
         console.error('Expected access token for request, but not in response!');
       } else {
@@ -128,7 +144,7 @@ var accessToken = interceptor({
     // Check for invalid access-token status codes.
     if (_response.status.code === 401 || _response.status.code === 0) {
       // Perform the request again after renewing the access-token.
-      return getAccessToken(config.authHost, getClientId(_response.request, config), config.uuid || noSSR, true, config.callback).then(function (accessToken) {
+      return getAccessToken(config.authHost, getClientId(_response.request, config), config.uuid || noSSR, true, config.cookies, config.callback).then(function (accessToken) {
         if (!accessToken) throw new Error('Empty access-token provided!');
         updateHeaders(_response.request, accessToken);
 
@@ -144,7 +160,7 @@ function getToken(response) {
   return response.entity.csrfToken;
 }
 
-var csrf = interceptor({
+var _csrf = interceptor({
   request: function request(_request, config, meta) {
     if (_request.requiresCsrf) {
       var client = config.client || _request.originator || client.skip();
@@ -179,7 +195,7 @@ var csrf = interceptor({
   }
 });
 
-var clientIdInterceptor = interceptor({
+var _clientIdInterceptor = interceptor({
 
   request: function request(_request, config) {
     var params = _request.params || {};
@@ -217,7 +233,7 @@ function endsWith(str, suffix) {
 }
 
 // Extended standard `prefix` interceptor
-var pathPrefix = interceptor({
+var _pathPrefix = interceptor({
   request: function request(_request, config) {
     if (!new UrlBuilder(_request.path).isFullyQualified()) {
       var prefixPath = isAuthPath(_request.path) ? config.authHost : config.apiHost;
@@ -237,7 +253,7 @@ var pathPrefix = interceptor({
   }
 });
 
-var withCredentials = interceptor({
+var _withCredentials = interceptor({
   request: function request(_request) {
     if (isAuthPath(_request.path)) {
       _request.withCredentials = true;
@@ -247,13 +263,12 @@ var withCredentials = interceptor({
   }
 });
 
-var api = function api(authHost, apiHost, clientId, uuid, callback) {
-  return rest.wrap(withCredentials).wrap(mime, { mime: 'application/json' }).wrap(accessToken, { authHost: authHost, uuid: uuid, clientId: clientId, callback: callback }).wrap(clientIdInterceptor, { clientId: clientId }).wrap(csrf, { path: 'auth/csrf-token' }).wrap(pathPrefix, { authHost: authHost, apiHost: apiHost }).wrap(errorCode, { code: 400 });
-};
-
-var index = {
-  api: api,
-  accessTokenSession: session
-};
-
-module.exports = index;
+exports.rest = _rest;
+exports.mime = _mime;
+exports.errorCode = _errorCode;
+exports.accessToken = _accessToken;
+exports.csrf = _csrf;
+exports.clientIdInterceptor = _clientIdInterceptor;
+exports.withCredentials = _withCredentials;
+exports.pathPrefix = _pathPrefix;
+exports.accessTokenSession = session;
