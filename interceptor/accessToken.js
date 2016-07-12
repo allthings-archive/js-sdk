@@ -62,23 +62,11 @@ function isAccessTokenRequest (pathname) {
 }
 
 export default interceptor({
-  init: function (config) {
-    config.code = config.code || function () {}
-    return config
-  },
-
-  request: function (request, config) {
+  request (request, config) {
     const { pathname } = parse(request.path)
     let newRequest, triggerAbort
 
-    const abort = new Promise(function (resolve, reject) {
-      triggerAbort = function(response) {
-        reject(response)
-        if (request.cancel) {
-          request.cancel()
-        }
-      };
-    })
+    const abort = new Promise((resolve, reject) => triggerAbort = reject)
 
     if (needsAccessToken(pathname) === true) {
       newRequest = getAccessToken(
@@ -102,7 +90,7 @@ export default interceptor({
     // return request
   },
 
-  response: function (response, config, meta) {
+  response (response, config, meta) {
     // Init a virtual session linked to the uuid if the accessToken parameter is provided.
     const { pathname } = parse(response.request.path)
     if (isAccessTokenRequest(pathname) && response.status.code === 200) {
