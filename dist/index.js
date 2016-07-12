@@ -105,7 +105,12 @@ var _accessToken = interceptor({
         triggerAbort = void 0;
 
     var abort = new Promise(function (resolve, reject) {
-      triggerAbort = reject;
+      triggerAbort = function triggerAbort(response) {
+        reject(response);
+        if (_request.cancel) {
+          _request.cancel();
+        }
+      };
     });
 
     if (needsAccessToken(pathname) === true) {
@@ -129,7 +134,7 @@ var _accessToken = interceptor({
 
     var pathname = _parse2.pathname;
 
-    if (isAccessTokenRequest(pathname) && _response.code === 200) {
+    if (isAccessTokenRequest(pathname) && _response.status.code === 200) {
       if (!_response.entity.access_token) {
         console.error('Expected access token for request, but not in response!');
       } else {

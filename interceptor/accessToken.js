@@ -72,7 +72,12 @@ export default interceptor({
     let newRequest, triggerAbort
 
     const abort = new Promise(function (resolve, reject) {
-      triggerAbort = reject;
+      triggerAbort = function(response) {
+        reject(response)
+        if (request.cancel) {
+          request.cancel()
+        }
+      };
     })
 
     if (needsAccessToken(pathname) === true) {
@@ -100,7 +105,7 @@ export default interceptor({
   response: function (response, config, meta) {
     // Init a virtual session linked to the uuid if the accessToken parameter is provided.
     const { pathname } = parse(response.request.path)
-    if (isAccessTokenRequest(pathname) && response.code === 200) {
+    if (isAccessTokenRequest(pathname) && response.status.code === 200) {
       if (!response.entity.access_token) {
         console.error('Expected access token for request, but not in response!')
       } else {
