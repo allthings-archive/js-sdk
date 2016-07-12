@@ -66,7 +66,7 @@ export default interceptor({
     const { pathname } = parse(request.path)
     let newRequest, triggerAbort
 
-    const abort = new Promise((resolve, reject) => triggerAbort = reject)
+    const abort = new Promise((resolve, reject) => { triggerAbort = reject })
 
     if (needsAccessToken(pathname) === true) {
       newRequest = getAccessToken(
@@ -86,8 +86,7 @@ export default interceptor({
       newRequest = request
     }
 
-    return new interceptor.ComplexRequest({ request: newRequest, abort: abort });
-    // return request
+    return new interceptor.ComplexRequest({ request: newRequest, abort: abort })
   },
 
   response (response, config, meta) {
