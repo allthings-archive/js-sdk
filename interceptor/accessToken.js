@@ -6,22 +6,29 @@ import parse from 'url-parse'
 
 const noSSR = 'singleClient'
 
-function getAccessToken (authHost, clientId, uuid, renew, callback) {
+function getAccessToken (authHost, clientId, uuid, renew, cookies, callback, err) {
   if (!session.accessTokens.hasOwnProperty(uuid) || renew) {
     session.accessTokens[uuid] = when.promise((resolve, reject) => {
       const host = authHost.replace(/\/$/, '')
-      rest({
+
+      const params = {
         method: 'GET',
         path: host + '/auth/access-token',
         params: { client_id: clientId },
         withCredentials: true
-      }).then(response => {
+      }
+
+      if (cookies !== null) {
+        params.headers = { Cookie: cookies }
+      }
+
+      rest(params).then(response => {
         if (response.status.code === 200) {
           const token = JSON.parse(response.entity).access_token
           resolve(token)
           callback(token)
         } else {
-          reject(response)
+          err(response)
         }
       })
     })
@@ -62,21 +69,32 @@ export default interceptor({
 
   request: function (request, config) {
     const { pathname } = parse(request.path)
+    let newRequest, triggerAbort
+
+    const abort = new Promise(function (resolve, reject) {
+      triggerAbort = reject;
+    })
+
     if (needsAccessToken(pathname) === true) {
-      return getAccessToken(
+      newRequest = getAccessToken(
         config.authHost,
         getClientId(request, config),
         config.uuid || noSSR,
         false,
-        config.callback
+        config.cookies,
+        config.callback,
+        triggerAbort
       ).then(accessToken => {
         if (!accessToken) throw new Error('Empty access-token provided!')
         updateHeaders(request, accessToken)
         return request
       })
+    } else {
+      newRequest = request
     }
 
-    return request
+    return new interceptor.ComplexRequest({ request: newRequest, abort: abort });
+    // return request
   },
 
   response: function (response, config, meta) {
@@ -97,6 +115,7 @@ export default interceptor({
         getClientId(response.request, config),
         config.uuid || noSSR,
         true,
+        config.cookies,
         config.callback
       ).then(accessToken => {
         if (!accessToken) throw new Error('Empty access-token provided!')

@@ -3,19 +3,11 @@ import when from 'when'
 const accessTokens = {}
 
 const initAccessTokenSession = (uuid, accessToken) => {
-  try {
-    accessTokens[uuid] = when.promise((resolve) => { resolve(accessToken) })
-  } catch (e) {
-    console.error(e)
-  }
+  accessTokens[uuid] = when.promise((resolve) => { resolve(accessToken) })
 }
 
 const killAccessTokenSession = uuid => {
-  try {
-    delete accessTokens[uuid]
-  } catch (e) {
-    console.error(e)
-  }
+  delete accessTokens[uuid]
 }
 
 export default {
