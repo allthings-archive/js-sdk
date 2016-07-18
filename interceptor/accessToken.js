@@ -97,6 +97,7 @@ export default interceptor({
         console.error('Expected access token for request, but not in response!')
       } else {
         session.initAccessTokenSession(config.uuid, response.entity.access_token)
+        config.callback(response.entity.access_token)
       }
     }
     // Check for invalid access-token status codes.

@@ -127,6 +127,7 @@ var _accessToken = interceptor({
         console.error('Expected access token for request, but not in response!');
       } else {
         session.initAccessTokenSession(config.uuid, _response.entity.access_token);
+        config.callback(_response.entity.access_token);
       }
     }
     // Check for invalid access-token status codes.
