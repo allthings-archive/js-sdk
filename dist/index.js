@@ -35,6 +35,7 @@ var noSSR = 'singleClient';
 function getAccessToken(authHost, clientId, uuid, renew, cookies, callback, err) {
   if (!session.accessTokens.hasOwnProperty(uuid) || renew) {
     session.accessTokens[uuid] = when.promise(function (resolve, reject) {
+      reject = err || reject;
       var host = authHost.replace(/\/$/, '');
 
       var params = {
@@ -54,7 +55,7 @@ function getAccessToken(authHost, clientId, uuid, renew, cookies, callback, err)
           resolve(token);
           callback(token);
         } else {
-          err(response);
+          reject(response);
         }
       });
     });
@@ -86,7 +87,7 @@ function needsAccessToken(pathname) {
 }
 
 function isAccessTokenRequest(pathname) {
-  return (/^\/*auth\/(access-token|login|password-reset\/[A-Za-z0-9]*)$/i.test(pathname)
+  return (/^\/*auth\/(access-token|login|oauth-login|password-reset\/[A-Za-z0-9]*)$/i.test(pathname)
   );
 }
 
