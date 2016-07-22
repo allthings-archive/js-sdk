@@ -3,9 +3,7 @@ import { isAuthPath } from './pathPrefix'
 
 export default interceptor({
   request (request) {
-    if (isAuthPath(request.path)) {
-      request.withCredentials = true
-    }
+    if (isAuthPath(request.path)) request.withCredentials = true
 
     return request
   }

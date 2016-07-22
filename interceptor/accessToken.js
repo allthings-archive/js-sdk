@@ -19,9 +19,7 @@ function getAccessToken (authHost, clientId, uuid, renew, cookies, callback, err
         withCredentials: true
       }
 
-      if (cookies !== null) {
-        params.headers = { Cookie: cookies }
-      }
+      if (cookies !== null) params.headers = { Cookie: cookies }
 
       rest(params).then(response => {
         if (response.status.code === 200) {
@@ -68,7 +66,7 @@ export default interceptor({
     const { pathname } = parse(request.path)
     let newRequest, triggerAbort
 
-    const abort = new Promise((resolve, reject) => { triggerAbort = reject })
+    const abort = when.promise((resolve, reject) => { triggerAbort = reject })
 
     if (needsAccessToken(pathname) === true) {
       newRequest = getAccessToken(
