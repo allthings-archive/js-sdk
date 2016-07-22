@@ -45,9 +45,7 @@ function getAccessToken(authHost, clientId, uuid, renew, cookies, callback, err)
         withCredentials: true
       };
 
-      if (cookies !== null) {
-        params.headers = { Cookie: cookies };
-      }
+      if (cookies !== null) params.headers = { Cookie: cookies };
 
       _rest(params).then(function (response) {
         if (response.status.code === 200) {
@@ -100,7 +98,7 @@ var _accessToken = interceptor({
     var newRequest = void 0,
         triggerAbort = void 0;
 
-    var abort = new Promise(function (resolve, reject) {
+    var abort = when.promise(function (resolve, reject) {
       triggerAbort = reject;
     });
 
@@ -245,9 +243,7 @@ var _pathPrefix = interceptor({
 
 var _withCredentials = interceptor({
   request: function request(_request) {
-    if (isAuthPath(_request.path)) {
-      _request.withCredentials = true;
-    }
+    if (isAuthPath(_request.path)) _request.withCredentials = true;
 
     return _request;
   }
