@@ -32,6 +32,10 @@ var session = {
 
 var noSSR = 'singleClient';
 
+function handleError(e) {
+  console.error('An error occured while trying to get a new access token: ' + JSON.stringify(e, null, 2));
+}
+
 function getAccessToken(authHost, clientId, uuid, renew, cookies, callback, err) {
   if (!session.accessTokens.hasOwnProperty(uuid) || renew) {
     session.accessTokens[uuid] = when.promise(function (resolve, reject) {
@@ -55,7 +59,7 @@ function getAccessToken(authHost, clientId, uuid, renew, cookies, callback, err)
         } else {
           reject(response);
         }
-      });
+      }).catch(handleError);
     });
   }
 
@@ -107,7 +111,7 @@ var _accessToken = interceptor({
         if (!accessToken) throw new Error('Empty access-token provided!');
         updateHeaders(_request, accessToken);
         return _request;
-      });
+      }).catch(handleError);
     } else {
       newRequest = _request;
     }
@@ -137,7 +141,7 @@ var _accessToken = interceptor({
         updateHeaders(_response.request, accessToken);
 
         return meta.client(_response.request);
-      });
+      }).catch(handleError);
     }
 
     return _response;
@@ -167,6 +171,8 @@ var _csrf = interceptor({
         entity.csrfToken = response.csrfToken;
 
         return _request;
+      }).catch(function (e) {
+        console.error('An error occured while trying to get a new csrf token: ' + JSON.stringify(e, null, 2));
       });
     }
 
