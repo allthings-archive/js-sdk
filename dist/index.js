@@ -5,6 +5,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
 var _rest = _interopDefault(require('rest'));
+var _timeout = _interopDefault(require('rest/interceptor/timeout'));
 var _mime = _interopDefault(require('rest/interceptor/mime'));
 var _errorCode = _interopDefault(require('rest/interceptor/errorCode'));
 var interceptor = _interopDefault(require('rest/interceptor'));
@@ -256,6 +257,7 @@ var _withCredentials = interceptor({
 });
 
 exports.rest = _rest;
+exports.timeout = _timeout;
 exports.mime = _mime;
 exports.errorCode = _errorCode;
 exports.accessToken = _accessToken;
