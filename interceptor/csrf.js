@@ -14,17 +14,19 @@ export default interceptor({
         accessToken: false,
         clientID: true,
         method: 'GET'
-      })
-      .then(response => {
+      }).then(response => {
         return {
           csrfToken: getToken(response)
         }
-      })
-      .then(response => {
+      }).then(response => {
         var entity = request.entity || {}
         entity.csrfToken = response.csrfToken
 
         return request
+      }).catch(e => {
+        console.error(
+          `An error occured while trying to get a new csrf token: ${JSON.stringify(e, null, 2)}`
+        )
       })
     }
 

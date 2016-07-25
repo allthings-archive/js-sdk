@@ -6,6 +6,12 @@ import parse from 'url-parse'
 
 const noSSR = 'singleClient'
 
+function handleError (e) {
+  console.error(
+    `An error occured while trying to get a new access token: ${JSON.stringify(e, null, 2)}`
+  )
+}
+
 function getAccessToken (authHost, clientId, uuid, renew, cookies, callback, err) {
   if (!session.accessTokens.hasOwnProperty(uuid) || renew) {
     session.accessTokens[uuid] = when.promise((resolve, reject) => {
@@ -29,7 +35,7 @@ function getAccessToken (authHost, clientId, uuid, renew, cookies, callback, err
         } else {
           reject(response)
         }
-      })
+      }).catch(handleError)
     })
   }
 
@@ -54,7 +60,7 @@ function getClientId (request, config) {
 
 function needsAccessToken (pathname) {
   return (/^\/*auth\/(?!logout).*$/i).test(pathname) === false &&
-      (/api\/v1\/helpers\/request-headers/i).test(pathname) === false
+    (/api\/v1\/helpers\/request-headers/i).test(pathname) === false
 }
 
 function isAccessTokenRequest (pathname) {
@@ -81,7 +87,7 @@ export default interceptor({
         if (!accessToken) throw new Error('Empty access-token provided!')
         updateHeaders(request, accessToken)
         return request
-      })
+      }).catch(handleError)
     } else {
       newRequest = request
     }
@@ -115,7 +121,7 @@ export default interceptor({
         updateHeaders(response.request, accessToken)
 
         return meta.client(response.request)
-      })
+      }).catch(handleError)
     }
 
     return response
