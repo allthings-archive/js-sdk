@@ -196,7 +196,7 @@ var _clientIdInterceptor = interceptor({
   request: function request(_request, config) {
     var params = _request.params || {};
     var clientId = config.clientId;
-    var requestId = params.client_id || params.clientId || params.clientID;
+    var requestId = _request.client_id || _request.clientId || _request.clientID;
     if (requestId && typeof requestId === 'string') {
       clientId = requestId;
     }

@@ -5,7 +5,7 @@ export default interceptor({
   request: function (request, config) {
     let params = request.params || {}
     let clientId = config.clientId
-    const requestId = params.client_id || params.clientId || params.clientID
+    const requestId = request.client_id || request.clientId || request.clientID
     if (requestId && typeof requestId === 'string') {
       clientId = requestId
     }
