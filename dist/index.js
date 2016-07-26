@@ -195,19 +195,24 @@ var _clientIdInterceptor = interceptor({
 
   request: function request(_request, config) {
     var params = _request.params || {};
+    var clientId = config.clientId;
+    var requestId = params.client_id || params.clientId || params.clientID;
+    if (requestId && typeof requestId === 'string') {
+      clientId = requestId;
+    }
 
     if (_request.clientId) {
-      params.clientId = config.clientId;
+      params.clientId = clientId;
       _request.params = params;
     }
 
     if (_request.clientID) {
-      params.clientID = config.clientId;
+      params.clientID = clientId;
       _request.params = params;
     }
 
     if (_request.client_id) {
-      params.client_id = config.clientId;
+      params.client_id = clientId;
       _request.params = params;
     }
 
