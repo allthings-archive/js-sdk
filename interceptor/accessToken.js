@@ -60,7 +60,7 @@ function getClientId (request, config) {
 
 function needsAccessToken (pathname) {
   return (/^\/*auth\/(?!logout).*$/i).test(pathname) === false &&
-    (/api\/v1\/helpers\/request-headers/i).test(pathname) === false
+    (/api\/v1\/helpers\//i).test(pathname) === false
 }
 
 function isAccessTokenRequest (pathname) {
