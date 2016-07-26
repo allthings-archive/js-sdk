@@ -1,4 +1,5 @@
 import interceptor from 'rest/interceptor'
+import stringify from 'json-stringify-safe'
 
 function getToken (response) {
   return response.entity.csrfToken
@@ -25,7 +26,7 @@ export default interceptor({
         return request
       }).catch(e => {
         console.error(
-          `An error occured while trying to get a new csrf token: ${JSON.stringify(e, null, 2)}`
+          `An error occured while trying to get a new csrf token: ${stringify(e, null, 2)}`
         )
       })
     }

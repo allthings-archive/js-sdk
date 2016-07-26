@@ -3,12 +3,13 @@ import rest from 'rest'
 import when from 'when'
 import session from '../utils/accessTokenSession'
 import parse from 'url-parse'
+import stringify from 'json-stringify-safe'
 
 const noSSR = 'singleClient'
 
 function handleError (e) {
   console.error(
-    `An error occured while trying to get a new access token: ${JSON.stringify(e, null, 2)}`
+    `An error occured while trying to get a new access token: ${stringify(e, null, 2)}`
   )
 }
 
