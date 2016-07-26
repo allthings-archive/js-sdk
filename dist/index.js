@@ -11,6 +11,7 @@ var _errorCode = _interopDefault(require('rest/interceptor/errorCode'));
 var interceptor = _interopDefault(require('rest/interceptor'));
 var when = _interopDefault(require('when'));
 var parse = _interopDefault(require('url-parse'));
+var stringify = _interopDefault(require('json-stringify-safe'));
 var UrlBuilder = _interopDefault(require('rest/UrlBuilder'));
 
 var accessTokens = {};
@@ -34,7 +35,7 @@ var session = {
 var noSSR = 'singleClient';
 
 function handleError(e) {
-  console.error('An error occured while trying to get a new access token: ' + JSON.stringify(e, null, 2));
+  console.error('An error occured while trying to get a new access token: ' + stringify(e, null, 2));
 }
 
 function getAccessToken(authHost, clientId, uuid, renew, cookies, callback, err) {
@@ -173,7 +174,7 @@ var _csrf = interceptor({
 
         return _request;
       }).catch(function (e) {
-        console.error('An error occured while trying to get a new csrf token: ' + JSON.stringify(e, null, 2));
+        console.error('An error occured while trying to get a new csrf token: ' + stringify(e, null, 2));
       });
     }
 
