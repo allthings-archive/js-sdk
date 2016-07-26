@@ -1,6 +1,7 @@
 export rest from 'rest'
 
 // Interceptors
+export timeout from 'rest/interceptor/timeout'
 export mime from 'rest/interceptor/mime'
 export errorCode from 'rest/interceptor/errorCode'
 

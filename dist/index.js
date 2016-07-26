@@ -5,11 +5,13 @@ Object.defineProperty(exports, '__esModule', { value: true });
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
 var _rest = _interopDefault(require('rest'));
+var _timeout = _interopDefault(require('rest/interceptor/timeout'));
 var _mime = _interopDefault(require('rest/interceptor/mime'));
 var _errorCode = _interopDefault(require('rest/interceptor/errorCode'));
 var interceptor = _interopDefault(require('rest/interceptor'));
 var when = _interopDefault(require('when'));
 var parse = _interopDefault(require('url-parse'));
+var stringify = _interopDefault(require('json-stringify-safe'));
 var UrlBuilder = _interopDefault(require('rest/UrlBuilder'));
 
 var accessTokens = {};
@@ -33,7 +35,7 @@ var session = {
 var noSSR = 'singleClient';
 
 function handleError(e) {
-  console.error('An error occured while trying to get a new access token: ' + JSON.stringify(e, null, 2));
+  console.error('An error occured while trying to get a new access token: ' + stringify(e, null, 2));
 }
 
 function getAccessToken(authHost, clientId, uuid, renew, cookies, callback, err) {
@@ -172,7 +174,7 @@ var _csrf = interceptor({
 
         return _request;
       }).catch(function (e) {
-        console.error('An error occured while trying to get a new csrf token: ' + JSON.stringify(e, null, 2));
+        console.error('An error occured while trying to get a new csrf token: ' + stringify(e, null, 2));
       });
     }
 
@@ -256,6 +258,7 @@ var _withCredentials = interceptor({
 });
 
 exports.rest = _rest;
+exports.timeout = _timeout;
 exports.mime = _mime;
 exports.errorCode = _errorCode;
 exports.accessToken = _accessToken;
