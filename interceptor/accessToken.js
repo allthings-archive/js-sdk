@@ -1,6 +1,6 @@
 import interceptor from 'rest/interceptor'
 import rest from 'rest'
-import when from 'when'
+import { Promise } from 'es6-promise'
 import session from '../utils/accessTokenSession'
 import parse from 'url-parse'
 import stringify from 'json-stringify-safe'
@@ -15,7 +15,7 @@ function handleError (e) {
 
 function getAccessToken (authHost, clientId, uuid, renew, cookies, callback, err) {
   if (!session.accessTokens.hasOwnProperty(uuid) || renew) {
-    session.accessTokens[uuid] = when.promise((resolve, reject) => {
+    session.accessTokens[uuid] = new Promise((resolve, reject) => {
       reject = err || reject
       const host = authHost.replace(/\/$/, '')
 
@@ -61,7 +61,7 @@ function getClientId (request, config) {
 
 function needsAccessToken (pathname) {
   return (/^\/*auth\/(?!logout).*$/i).test(pathname) === false &&
-    (/api\/v1\/helpers\//i).test(pathname) === false
+    (/api\/v1\/helpers\/request-headers/i).test(pathname) === false
 }
 
 function isAccessTokenRequest (pathname) {
@@ -69,17 +69,23 @@ function isAccessTokenRequest (pathname) {
 }
 
 export default interceptor({
+  init (config) {
+    config.uuid = config.uuid || noSSR
+
+    return config
+  },
+
   request (request, config) {
     const { pathname } = parse(request.path)
-    let newRequest, triggerAbort
-
-    const abort = when.promise((resolve, reject) => { triggerAbort = reject })
+    const abort = new Promise((resolve, reject) => { triggerAbort = reject })
+    let newRequest
+    let triggerAbort
 
     if (needsAccessToken(pathname) === true) {
       newRequest = getAccessToken(
         config.authHost,
         getClientId(request, config),
-        config.uuid || noSSR,
+        config.uuid,
         false,
         config.cookies,
         config.callback,
@@ -87,6 +93,12 @@ export default interceptor({
       ).then(accessToken => {
         if (!accessToken) throw new Error('Empty access-token provided!')
         updateHeaders(request, accessToken)
+        // Push the new ongoing request to the pool.
+        if (!session.ongoingRequests.hasOwnProperty(config.uuid)) {
+          session.ongoingRequests[config.uuid] = []
+        }
+        session.ongoingRequests[config.uuid].push(request)
+
         return request
       }).catch(handleError)
     } else {
@@ -113,7 +125,7 @@ export default interceptor({
       return getAccessToken(
         config.authHost,
         getClientId(response.request, config),
-        config.uuid || noSSR,
+        config.uuid,
         true,
         config.cookies,
         config.callback
