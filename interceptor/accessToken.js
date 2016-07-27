@@ -7,7 +7,8 @@ import stringify from 'json-stringify-safe'
 
 const noSSR = 'singleClient'
 
-function handleError (e) {
+function handleError (e, uuid) {
+  session.killAccessTokenSession(uuid)
   console.error(
     `An error occured while trying to get a new access token: ${stringify(e, null, 2)}`
   )
@@ -36,7 +37,7 @@ function getAccessToken (authHost, clientId, uuid, renew, cookies, callback, err
         } else {
           reject(response)
         }
-      }).catch(handleError)
+      }).catch(e => handleError(e, uuid))
     })
   }
 
@@ -100,7 +101,7 @@ export default interceptor({
         session.ongoingRequests[config.uuid].push(request)
 
         return request
-      }).catch(handleError)
+      }).catch(e => handleError(e, config.uuid))
     } else {
       newRequest = request
     }
@@ -134,7 +135,7 @@ export default interceptor({
         updateHeaders(response.request, accessToken)
 
         return meta.client(response.request)
-      }).catch(handleError)
+      }).catch(e => handleError(e, config.uuid))
     }
 
     return response

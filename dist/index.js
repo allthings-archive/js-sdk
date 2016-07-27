@@ -45,7 +45,8 @@ var session = {
 
 var noSSR = 'singleClient';
 
-function handleError(e) {
+function handleError(e, uuid) {
+  session.killAccessTokenSession(uuid);
   console.error('An error occured while trying to get a new access token: ' + stringify(e, null, 2));
 }
 
@@ -72,7 +73,9 @@ function getAccessToken(authHost, clientId, uuid, renew, cookies, callback, err)
         } else {
           reject(response);
         }
-      }).catch(handleError);
+      }).catch(function (e) {
+        return handleError(e, uuid);
+      });
     });
   }
 
@@ -134,7 +137,9 @@ var _accessToken = interceptor({
         session.ongoingRequests[config.uuid].push(_request);
 
         return _request;
-      }).catch(handleError);
+      }).catch(function (e) {
+        return handleError(e, config.uuid);
+      });
     } else {
       newRequest = _request;
     }
@@ -143,6 +148,7 @@ var _accessToken = interceptor({
   },
   response: function response(_response, config, meta) {
     // Init a virtual session linked to the uuid if the accessToken parameter is provided.
+
     var _parse2 = parse(_response.request.path);
 
     var pathname = _parse2.pathname;
@@ -163,7 +169,9 @@ var _accessToken = interceptor({
         updateHeaders(_response.request, accessToken);
 
         return meta.client(_response.request);
-      }).catch(handleError);
+      }).catch(function (e) {
+        return handleError(e, config.uuid);
+      });
     }
 
     return _response;
