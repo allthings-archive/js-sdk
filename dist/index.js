@@ -9,27 +9,38 @@ var _timeout = _interopDefault(require('rest/interceptor/timeout'));
 var _mime = _interopDefault(require('rest/interceptor/mime'));
 var _errorCode = _interopDefault(require('rest/interceptor/errorCode'));
 var interceptor = _interopDefault(require('rest/interceptor'));
-var when = _interopDefault(require('when'));
+var es6Promise = require('es6-promise');
 var parse = _interopDefault(require('url-parse'));
 var stringify = _interopDefault(require('json-stringify-safe'));
 var UrlBuilder = _interopDefault(require('rest/UrlBuilder'));
 
 var accessTokens = {};
 
+var ongoingRequests = {};
+
 var initAccessTokenSession = function initAccessTokenSession(uuid, accessToken) {
-  accessTokens[uuid] = when.promise(function (resolve) {
+  // Add the access token promise into the store.
+  accessTokens[uuid] = new es6Promise.Promise(function (resolve) {
     resolve(accessToken);
   });
 };
 
 var killAccessTokenSession = function killAccessTokenSession(uuid) {
-  delete accessTokens[uuid];
+  var ongoing = ongoingRequests[uuid];
+  // Wait for all the ongoing requests to be performed.
+  if (ongoing && ongoing.length > 0) {
+    es6Promise.Promise.all(ongoing).then(function (promises) {
+      delete accessTokens[uuid];
+      delete ongoingRequests[uuid];
+    });
+  }
 };
 
 var session = {
   accessTokens: accessTokens,
   initAccessTokenSession: initAccessTokenSession,
-  killAccessTokenSession: killAccessTokenSession
+  killAccessTokenSession: killAccessTokenSession,
+  ongoingRequests: ongoingRequests
 };
 
 var noSSR = 'singleClient';
@@ -40,7 +51,7 @@ function handleError(e) {
 
 function getAccessToken(authHost, clientId, uuid, renew, cookies, callback, err) {
   if (!session.accessTokens.hasOwnProperty(uuid) || renew) {
-    session.accessTokens[uuid] = when.promise(function (resolve, reject) {
+    session.accessTokens[uuid] = new es6Promise.Promise(function (resolve, reject) {
       reject = err || reject;
       var host = authHost.replace(/\/$/, '');
 
@@ -86,7 +97,7 @@ function getClientId(request, config) {
 }
 
 function needsAccessToken(pathname) {
-  return (/^\/*auth\/(?!logout).*$/i.test(pathname) === false && /api\/v1\/helpers\//i.test(pathname) === false
+  return (/^\/*auth\/(?!logout).*$/i.test(pathname) === false && /api\/v1\/helpers\/request-headers/i.test(pathname) === false
   );
 }
 
@@ -96,22 +107,32 @@ function isAccessTokenRequest(pathname) {
 }
 
 var _accessToken = interceptor({
+  init: function init(config) {
+    config.uuid = config.uuid || noSSR;
+
+    return config;
+  },
   request: function request(_request, config) {
     var _parse = parse(_request.path);
 
     var pathname = _parse.pathname;
 
-    var newRequest = void 0,
-        triggerAbort = void 0;
-
-    var abort = when.promise(function (resolve, reject) {
+    var abort = new es6Promise.Promise(function (resolve, reject) {
       triggerAbort = reject;
     });
+    var newRequest = void 0;
+    var triggerAbort = void 0;
 
     if (needsAccessToken(pathname) === true) {
-      newRequest = getAccessToken(config.authHost, getClientId(_request, config), config.uuid || noSSR, false, config.cookies, config.callback, triggerAbort).then(function (accessToken) {
+      newRequest = getAccessToken(config.authHost, getClientId(_request, config), config.uuid, false, config.cookies, config.callback, triggerAbort).then(function (accessToken) {
         if (!accessToken) throw new Error('Empty access-token provided!');
         updateHeaders(_request, accessToken);
+        // Push the new ongoing request to the pool.
+        if (!session.ongoingRequests.hasOwnProperty(config.uuid)) {
+          session.ongoingRequests[config.uuid] = [];
+        }
+        session.ongoingRequests[config.uuid].push(_request);
+
         return _request;
       }).catch(handleError);
     } else {
@@ -122,7 +143,6 @@ var _accessToken = interceptor({
   },
   response: function response(_response, config, meta) {
     // Init a virtual session linked to the uuid if the accessToken parameter is provided.
-
     var _parse2 = parse(_response.request.path);
 
     var pathname = _parse2.pathname;
@@ -138,7 +158,7 @@ var _accessToken = interceptor({
     // Check for invalid access-token status codes.
     if (_response.status.code === 401 || _response.status.code === 0) {
       // Perform the request again after renewing the access-token.
-      return getAccessToken(config.authHost, getClientId(_response.request, config), config.uuid || noSSR, true, config.cookies, config.callback).then(function (accessToken) {
+      return getAccessToken(config.authHost, getClientId(_response.request, config), config.uuid, true, config.cookies, config.callback).then(function (accessToken) {
         if (!accessToken) throw new Error('Empty access-token provided!');
         updateHeaders(_response.request, accessToken);
 
