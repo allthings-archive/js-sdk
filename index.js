@@ -26,4 +26,4 @@ export default (authHost, apiHost, clientId) => {
     .wrap(timeout, { timeout: 5000 })
 }
 
-export requests from './requests'
+export * as requests from './requests'
