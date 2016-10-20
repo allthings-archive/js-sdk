@@ -1,14 +1,11 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
 var rest = _interopDefault(require('rest'));
 var mime = _interopDefault(require('rest/interceptor/mime'));
 var params = _interopDefault(require('rest/interceptor/params'));
 var errorCode = _interopDefault(require('rest/interceptor/errorCode'));
-var timeout = _interopDefault(require('rest/interceptor/timeout'));
 var interceptor = _interopDefault(require('rest/interceptor'));
 var UrlBuilder = _interopDefault(require('rest/UrlBuilder'));
 var parse = _interopDefault(require('url-parse'));
@@ -155,47 +152,8 @@ var csrf = interceptor({
   }
 });
 
-function login(email, password) {
-  return {
-    method: 'POST',
-    path: 'auth/login',
-    requiresCsrf: true,
-    clientID: true,
-    entity: {
-      email: email,
-      password: password
-    }
-  };
-}
-
-function localeHelper() {
-  return {
-    method: 'GET',
-    path: 'api/v1/helpers/locale',
-    clientID: true
-  };
-}
-
-function accessToken$1() {
-  return {
-    method: 'GET',
-    path: 'auth/access-token',
-    clientID: true
-  };
-}
-
-var requests = null;
-
-var _requests = Object.freeze({
-  login: login,
-  localeHelper: localeHelper,
-  accessToken: accessToken$1,
-  default: requests
-});
-
 var index = (function (authHost, apiHost, clientId) {
-  return rest.wrap(withCredentials).wrap(mime, { mime: 'application/json' }).wrap(accessToken).wrap(params).wrap(clientIdInterceptor, { clientId: clientId }).wrap(csrf, { path: 'auth/csrf-token' }).wrap(pathPrefix, { authHost: authHost, apiHost: apiHost }).wrap(errorCode, { code: 500 }).wrap(timeout, { timeout: 5000 });
+  return rest.wrap(withCredentials).wrap(mime, { mime: 'application/json' }).wrap(accessToken).wrap(params).wrap(clientIdInterceptor, { clientId: clientId }).wrap(csrf, { path: 'auth/csrf-token' }).wrap(pathPrefix, { authHost: authHost, apiHost: apiHost }).wrap(errorCode, { code: 500 });
 });
 
-exports['default'] = index;
-exports.requests = _requests;
+module.exports = index;
