@@ -1,4 +1,4 @@
-# js-sdk [![Build Status](https://travis-ci.org/qipp/js-sdk.svg?branch=master)](https://travis-ci.org/qipp/js-sdk)
+# js-sdk [![Build Status](https://travis-ci.org/allthings/js-sdk.svg?branch=master)](https://travis-ci.org/qipp/js-sdk)
 
 ## Example
 
