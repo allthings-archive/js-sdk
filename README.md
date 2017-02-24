@@ -1,5 +1,7 @@
 # js-sdk [![Build Status](https://travis-ci.org/allthings/js-sdk.svg?branch=master)](https://travis-ci.org/qipp/js-sdk)
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/allthings/js-sdk.svg)](https://greenkeeper.io/)
+
 ## Example
 
 ```js
