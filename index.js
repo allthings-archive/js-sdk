@@ -2,7 +2,6 @@ import rest from 'rest'
 
 import mime from 'rest/interceptor/mime'
 import params from 'rest/interceptor/params'
-import errorCode from 'rest/interceptor/errorCode'
 
 import withCredentials from './interceptor/withCredentials'
 import accessToken from './interceptor/accessToken'
@@ -19,5 +18,4 @@ export default (authHost, apiHost, clientId) => {
     .wrap(clientIdInterceptor, { clientId })
     .wrap(csrf, { path: 'auth/csrf-token' })
     .wrap(pathPrefix, { authHost, apiHost })
-    .wrap(errorCode, { code: 500 })
 }
