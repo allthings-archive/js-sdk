@@ -11,7 +11,7 @@ function updateHeaders (request, accessToken) {
 }
 
 function needsAccessToken (pathname) {
-  return (/^\/*auth\/(?!logout).*$/i).test(pathname) === false &&
+  return (/^\/*auth\/(?!logout|users\/[0-9a-f]{24}).*$/i).test(pathname) === false &&
     (/api\/v1\/helpers\//i).test(pathname) === false
 }
 
