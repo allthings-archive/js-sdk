@@ -61,7 +61,7 @@ function updateHeaders(request, accessToken) {
 }
 
 function needsAccessToken(pathname) {
-  return (/^\/*auth\/(?!logout).*$/i.test(pathname) === false && /api\/v1\/helpers\//i.test(pathname) === false
+  return (/^\/*auth\/(?!logout|users\/[0-9a-f]{24}).*$/i.test(pathname) === false && /api\/v1\/helpers\//i.test(pathname) === false
   );
 }
 
@@ -78,10 +78,8 @@ var accessToken = interceptor({
     return config;
   },
   request: function request(_request, config) {
-    var _parse = parse(_request.path);
-
-    var pathname = _parse.pathname;
-
+    var _parse = parse(_request.path),
+        pathname = _parse.pathname;
 
     if (needsAccessToken(pathname) === true) {
       _request.headers = updateHeaders(_request, _request.accessToken || config.token);
@@ -90,9 +88,8 @@ var accessToken = interceptor({
     return _request;
   },
   response: function response(_response, config, meta) {
-    var _parse2 = parse(_response.request.path);
-
-    var pathname = _parse2.pathname;
+    var _parse2 = parse(_response.request.path),
+        pathname = _parse2.pathname;
 
     if (isAccessTokenRequest(pathname) && _response.status && _response.status.code === 200 && _response.entity.access_token) {
       config.onAccessToken(_response.entity.access_token);
