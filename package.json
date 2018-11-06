@@ -6,7 +6,7 @@
     "allthings",
     "app"
   ],
-  "homepage": "https://www.qipp.com/",
+  "homepage": "https://www.allthings.me",
   "repository": {
     "type": "git",
     "url": "git@github.com:qipp/allthings-js-sdk.git"
@@ -17,15 +17,9 @@
   },
   "main": "dist/index.js",
   "license": "MIT",
-  "author": {
-    "name": "qipp",
-    "email": "dev@qipp.com",
-    "url": "https://www.qipp.com/"
-  },
   "dependencies": {
     "cookie": "0.2.3",
-    "rest": "2.0.0",
-    "url-parse": "1.4.3"
+    "rest": "2.0.0"
   },
   "devDependencies": {
     "ava": "0.15.2",
@@ -41,25 +35,12 @@
     "standard": "7.1.2"
   },
   "scripts": {
-    "prebuild": "npm run std && npm test",
     "build": "rollup -c rollup.js",
     "std": "standard --verbose | snazzy",
     "test": "ava -v --fail-fast --no-cache",
     "preversion": "git pull && npm up && npm run build",
     "version": "git add -A",
     "postversion": "git push --tags origin HEAD"
-  },
-  "ava": {
-    "require": [
-      "babel-register"
-    ],
-    "tap": true
-  },
-  "babel": {
-    "presets": [
-      "es2015",
-      "stage-0"
-    ]
   },
   "standard": {
     "ignore": [
