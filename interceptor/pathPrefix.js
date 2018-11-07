@@ -1,23 +1,25 @@
 import interceptor from 'rest/interceptor'
 import UrlBuilder from 'rest/UrlBuilder'
 
-export function isAuthPath (pathname) {
-  return (/^\/?auth/).test(pathname)
+export function isAuthPath(pathname) {
+  return /^\/?auth/.test(pathname)
 }
 
-function startsWith (str, prefix) {
+function startsWith(str, prefix) {
   return str.indexOf(prefix) === 0
 }
 
-function endsWith (str, suffix) {
+function endsWith(str, suffix) {
   return str.lastIndexOf(suffix) + suffix.length === str.length
 }
 
 // Extended standard `prefix` interceptor
 export default interceptor({
-  request (request, config) {
+  request(request, config) {
     if (!new UrlBuilder(request.path).isFullyQualified()) {
-      let prefixPath = isAuthPath(request.path) ? config.authHost : config.apiHost
+      let prefixPath = isAuthPath(request.path)
+        ? config.authHost
+        : config.apiHost
 
       if (request.path) {
         if (!endsWith(prefixPath, '/') && !startsWith(request.path, '/')) {
@@ -31,5 +33,5 @@ export default interceptor({
     }
 
     return request
-  }
+  },
 })

@@ -1,8 +1,7 @@
 import interceptor from 'rest/interceptor'
 
 export default interceptor({
-
-  request: function (request, config) {
+  request: function(request, config) {
     let params = request.params || {}
     let clientId = config.clientId
     const requestId = request.client_id || request.clientId || request.clientID
@@ -26,5 +25,5 @@ export default interceptor({
     }
 
     return request
-  }
+  },
 })

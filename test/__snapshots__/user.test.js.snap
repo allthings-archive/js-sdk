@@ -1,0 +1,124 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Authentication should be able to get me 1`] = `
+Object {
+  "_embedded": Object {
+    "company": null,
+    "notificationSettings": Object {
+      "admin-messages": "immediately",
+      "deals": "daily",
+      "events": "daily",
+      "hints-and-tips": "weekly",
+      "local-deals": "daily",
+      "local-events": "daily",
+      "lost-and-found": "daily",
+      "messages": "daily",
+      "miscellaneous": "weekly",
+      "new-things-for-sale": "daily",
+      "new-things-to-give": "daily",
+      "services": "daily",
+      "surveys": "weekly",
+    },
+    "organization": null,
+    "permissions": Array [
+      Object {
+        "_links": Object {
+          "user": Object {
+            "href": "/api/v1/users/50f66beaeabc88ab0e000000",
+          },
+        },
+        "id": null,
+        "label": null,
+        "objectID": "*",
+        "objectType": "App",
+        "restricted": false,
+        "restrictions": Array [],
+        "role": "admin",
+      },
+      Object {
+        "_links": Object {
+          "user": Object {
+            "href": "/api/v1/users/50f66beaeabc88ab0e000000",
+          },
+        },
+        "id": null,
+        "label": null,
+        "objectID": "*",
+        "objectType": "App",
+        "restricted": false,
+        "restrictions": Array [],
+        "role": "article-admin",
+      },
+      Object {
+        "_links": Object {
+          "user": Object {
+            "href": "/api/v1/users/50f66beaeabc88ab0e000000",
+          },
+        },
+        "id": null,
+        "label": null,
+        "objectID": "*",
+        "objectType": "App",
+        "restricted": false,
+        "restrictions": Array [],
+        "role": "community-article-admin",
+      },
+    ],
+    "profileImage": null,
+    "utilisationPeriods": Array [],
+  },
+  "_links": Object {
+    "apps": Object {
+      "href": "/api/v1/users/50f66beaeabc88ab0e000000/apps",
+    },
+    "articles": Object {
+      "href": "/api/v1/users/50f66beaeabc88ab0e000000/articles",
+    },
+    "communityArticles": Object {
+      "href": "/api/v1/users/50f66beaeabc88ab0e000000/community-articles",
+    },
+    "permissions": Object {
+      "href": "/api/v1/users/50f66beaeabc88ab0e000000/permissions",
+    },
+    "self": Object {
+      "href": "/api/v1/users/50f66beaeabc88ab0e000000",
+    },
+    "things": Object {
+      "href": "/api/v1/users/50f66beaeabc88ab0e000000/things",
+    },
+    "utilisationPeriods": Object {
+      "href": "/api/v1/users/50f66beaeabc88ab0e000000/utilisation-periods",
+    },
+  },
+  "_meta": Object {
+    "company": null,
+    "hasPermissions": true,
+  },
+  "createdAt": "2013-01-16T08:59:22+0000",
+  "deleted": false,
+  "deletionRequestedAt": null,
+  "description": null,
+  "email": "admin@allthings.me",
+  "emailValidated": true,
+  "externalId": null,
+  "gender": null,
+  "id": "50f66beaeabc88ab0e000000",
+  "locale": "en_US",
+  "passwordChanged": true,
+  "phoneNumber": null,
+  "profileImage": null,
+  "properties": null,
+  "publicProfile": true,
+  "receiveAdminNotifications": true,
+  "roles": Array [
+    "admin",
+    "article-admin",
+    "community-article-admin",
+    "super-admin",
+  ],
+  "tenantIDs": Object {},
+  "type": "allthings_user",
+  "username": "admin@allthings.me",
+  "vacationSetting": null,
+}
+`;

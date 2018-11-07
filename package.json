@@ -16,9 +16,12 @@
     "npm": ">=3.0.0"
   },
   "main": "dist/index.js",
+  "files": [
+    "dist/index.js"
+  ],
   "license": "MIT",
   "dependencies": {
-    "cookie": "0.2.3",
+    "cookie": "0.3.1",
     "rest": "2.0.0"
   },
   "devDependencies": {
@@ -28,6 +31,7 @@
     "babel-preset-es2015-rollup": "1.1.1",
     "babel-preset-stage-0": "6.5.0",
     "babel-register": "6.9.0",
+    "jest": "23.6.0",
     "nock": "8.0.0",
     "prettier": "1.15.1",
     "rollup": "0.29.0",
@@ -38,7 +42,7 @@
   "scripts": {
     "build": "rollup -c rollup.js",
     "std": "standard --verbose | snazzy",
-    "test": "ava -v --fail-fast --no-cache",
+    "test": "jest",
     "preversion": "git pull && npm up && npm run build",
     "version": "git add -A",
     "postversion": "git push --tags origin HEAD"
@@ -48,6 +52,16 @@
     "singleQuote": true,
     "trailingComma": "es5",
     "useTabs": false
+  },
+  "jest": {
+    "collectCoverage": true,
+    "setupTestFrameworkScriptFile": "<rootDir>/test/setup.js"
+  },
+  "babel": {
+    "presets": [
+      "es2015",
+      "stage-0"
+    ]
   },
   "standard": {
     "ignore": [
