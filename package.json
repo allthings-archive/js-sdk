@@ -1,12 +1,12 @@
 {
   "name": "allthings-js-sdk",
-  "version": "10.1.1",
+  "version": "11.0.0",
   "description": "JavaScript SDK for communication with the Allthings API",
   "keywords": [
     "allthings",
     "app"
   ],
-  "homepage": "https://www.qipp.com/",
+  "homepage": "https://www.allthings.me",
   "repository": {
     "type": "git",
     "url": "git@github.com:qipp/allthings-js-sdk.git"
@@ -17,15 +17,9 @@
   },
   "main": "dist/index.js",
   "license": "MIT",
-  "author": {
-    "name": "qipp",
-    "email": "dev@qipp.com",
-    "url": "https://www.qipp.com/"
-  },
   "dependencies": {
     "cookie": "0.2.3",
-    "rest": "2.0.0",
-    "url-parse": "1.4.3"
+    "rest": "2.0.0"
   },
   "devDependencies": {
     "ava": "0.15.2",
@@ -35,13 +29,13 @@
     "babel-preset-stage-0": "6.5.0",
     "babel-register": "6.9.0",
     "nock": "8.0.0",
+    "prettier": "1.15.1",
     "rollup": "0.29.0",
     "rollup-plugin-babel": "2.5.1",
     "snazzy": "4.0.0",
     "standard": "7.1.2"
   },
   "scripts": {
-    "prebuild": "npm run std && npm test",
     "build": "rollup -c rollup.js",
     "std": "standard --verbose | snazzy",
     "test": "ava -v --fail-fast --no-cache",
@@ -49,17 +43,11 @@
     "version": "git add -A",
     "postversion": "git push --tags origin HEAD"
   },
-  "ava": {
-    "require": [
-      "babel-register"
-    ],
-    "tap": true
-  },
-  "babel": {
-    "presets": [
-      "es2015",
-      "stage-0"
-    ]
+  "prettier": {
+    "semi": false,
+    "singleQuote": true,
+    "trailingComma": "es5",
+    "useTabs": false
   },
   "standard": {
     "ignore": [

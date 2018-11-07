@@ -5,6 +5,8 @@ function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'defau
 var rest = _interopDefault(require('rest'));
 var mime = _interopDefault(require('rest/interceptor/mime'));
 var params = _interopDefault(require('rest/interceptor/params'));
+var errorCode = _interopDefault(require('rest/interceptor/errorCode'));
+var retry = _interopDefault(require('rest/interceptor/retry'));
 var interceptor = _interopDefault(require('rest/interceptor'));
 var UrlBuilder = _interopDefault(require('rest/UrlBuilder'));
 var parse = _interopDefault(require('url-parse'));
@@ -149,7 +151,7 @@ var csrf = interceptor({
 });
 
 var index = (function (authHost, apiHost, clientId) {
-  return rest.wrap(withCredentials).wrap(mime, { mime: 'application/json' }).wrap(accessToken).wrap(params).wrap(clientIdInterceptor, { clientId: clientId }).wrap(csrf, { path: 'auth/csrf-token' }).wrap(pathPrefix, { authHost: authHost, apiHost: apiHost });
+  return rest.wrap(errorCode, { code: 503 }).wrap(retry).wrap(withCredentials).wrap(mime, { mime: 'application/json' }).wrap(accessToken).wrap(params).wrap(clientIdInterceptor, { clientId: clientId }).wrap(csrf, { path: 'auth/csrf-token' }).wrap(pathPrefix, { authHost: authHost, apiHost: apiHost });
 });
 
 module.exports = index;
