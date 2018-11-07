@@ -1,25 +1,15 @@
 # js-sdk [![Build Status](https://travis-ci.org/allthings/js-sdk.svg?branch=master)](https://travis-ci.org/qipp/js-sdk)
 
-## Example
+## Usage
 
 ```js
-import { auth, api } from 'allthings-js-sdk'
+import API from 'allthings-js-sdk'
 
-const authClient = auth({
-  path: 'https://allthings-app.dev.qipp.com/auth/',
-  clientId: '123123123' // Also might be a promise :-)
-})
-
-const apiClient = api({
-  path: 'https://api.dev.qipp.com/api/',
-  auth: authClient
-})
-
-export default {
-  auth: authClient,
-  api: apiClient
-}
-```
+const client = API(
+  'https://accounts.allthings.me',
+  'https://api.allthings.me',
+  'MY_CLIENT_ID'
+)```
 
 ## Based on
 
