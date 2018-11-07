@@ -9,6 +9,7 @@ var errorCode = _interopDefault(require('rest/interceptor/errorCode'));
 var retry = _interopDefault(require('rest/interceptor/retry'));
 var interceptor = _interopDefault(require('rest/interceptor'));
 var UrlBuilder = _interopDefault(require('rest/UrlBuilder'));
+var parse = _interopDefault(require('url-parse'));
 
 function isAuthPath(pathname) {
   return (/^\/?auth/.test(pathname)
@@ -30,9 +31,9 @@ var pathPrefix = interceptor({
       var prefixPath = isAuthPath(_request.path) ? config.authHost : config.apiHost;
 
       if (_request.path) {
-        if (!endsWith(prefixPath, "/") && !startsWith(_request.path, "/")) {
-          prefixPath += "/";
-        } else if (endsWith(prefixPath, "/") && startsWith(_request.path, "/")) {
+        if (!endsWith(prefixPath, '/') && !startsWith(_request.path, '/')) {
+          prefixPath += '/';
+        } else if (endsWith(prefixPath, '/') && startsWith(_request.path, '/')) {
           prefixPath = prefixPath.slice(0, -1);
         }
         prefixPath += _request.path;
@@ -56,7 +57,7 @@ function updateHeaders(request, accessToken) {
   var headers = void 0;
 
   headers = request.headers || (request.headers = {});
-  headers.Authorization = "Bearer " + accessToken;
+  headers.Authorization = 'Bearer ' + accessToken;
 
   return headers;
 }
@@ -79,15 +80,20 @@ var accessToken = interceptor({
     return config;
   },
   request: function request(_request, config) {
-    if (needsAccessToken(_request.path) === true) {
+    var _parse = parse(_request.path),
+        pathname = _parse.pathname;
+
+    if (needsAccessToken(pathname) === true) {
       _request.headers = updateHeaders(_request, _request.accessToken || config.token);
     }
 
     return _request;
   },
   response: function response(_response, config, meta) {
-    console.log(_response.request.path);
-    if (isAccessTokenRequest(_response.request.path) && _response.status && _response.status.code === 200 && _response.entity.access_token) {
+    var _parse2 = parse(_response.request.path),
+        pathname = _parse2.pathname;
+
+    if (isAccessTokenRequest(pathname) && _response.status && _response.status.code === 200 && _response.entity.access_token) {
       config.onAccessToken(_response.entity.access_token);
     }
 
@@ -145,7 +151,7 @@ var csrf = interceptor({
 });
 
 var index = (function (authHost, apiHost, clientId) {
-  return rest.wrap(errorCode, { code: 503 }).wrap(retry).wrap(withCredentials).wrap(mime, { mime: "application/json" }).wrap(accessToken).wrap(params).wrap(clientIdInterceptor, { clientId: clientId }).wrap(csrf, { path: "auth/csrf-token" }).wrap(pathPrefix, { authHost: authHost, apiHost: apiHost });
+  return rest.wrap(errorCode, { code: 503 }).wrap(retry).wrap(withCredentials).wrap(mime, { mime: 'application/json' }).wrap(accessToken).wrap(params).wrap(clientIdInterceptor, { clientId: clientId }).wrap(csrf, { path: 'auth/csrf-token' }).wrap(pathPrefix, { authHost: authHost, apiHost: apiHost });
 });
 
 module.exports = index;
