@@ -1,5 +1,5 @@
 {
-  "name": "allthings-js-sdk",
+  "name": "@allthings/js-sdk",
   "version": "11.0.1",
   "description": "JavaScript SDK for communication with the Allthings API",
   "keywords": [
