@@ -54,5 +54,8 @@
       "dist"
     ],
     "parser": "babel-eslint"
+  },
+  "resolutions": {
+    "braces": ">=2.3.1"
   }
 }
