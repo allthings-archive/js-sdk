@@ -83,8 +83,9 @@ var accessToken = interceptor({
     var _parse = parse(_request.path),
         pathname = _parse.pathname;
 
-    if (needsAccessToken(pathname) === true) {
-      _request.headers = updateHeaders(_request, _request.accessToken || config.token);
+    var token = _request.accessToken || config.token;
+    if (token && needsAccessToken(pathname) === true) {
+      _request.headers = updateHeaders(_request, token);
     }
 
     return _request;
