@@ -28,8 +28,9 @@ export default interceptor({
   request (request, config) {
     const { pathname } = parse(request.path)
 
-    if (needsAccessToken(pathname) === true) {
-      request.headers = updateHeaders(request, request.accessToken || config.token)
+    const token = request.accessToken || config.token
+    if (token && needsAccessToken(pathname) === true) {
+      request.headers = updateHeaders(request, token)
     }
 
     return request
